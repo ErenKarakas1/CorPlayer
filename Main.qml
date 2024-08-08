@@ -2,47 +2,60 @@ import QtQuick 2.6
 import QtQuick.Controls 2.0
 import QtMultimedia 6.0
 import QtQuick.Dialogs
+import QtQuick.Layouts
 
 ApplicationWindow {
     id: root
-    width: 300
-    height: 480
+    width: 600
+    height: 800
     visible: true
 
     FileDialog {
         id: fileDialog
-        title: "Open Media File"
-        nameFilters: ["Media Files (*.mp3 *.mp4 *.wav *.avi *.opus *.flac)"]
+        title: "Select a Music File"
+        nameFilters: ["Audio files (*.mp3 *.wav *.ogg *.opus *.flac)"]
         onAccepted: {
-            console.log("Selected file: " + fileDialog.fileUrl)
-            mediaPlayerBackend.source = fileDialog.fileUrl.toString()
+            mediaPlayerBackend.source = fileDialog.currentFile
         }
     }
 
-    Column {
-        spacing: 10
+    ColumnLayout {
         anchors.centerIn: parent
+        spacing: 20
 
-        TextField {
-            id: sourceField
-            placeholderText: "Enter media file path"
-            text: mediaPlayerBackend.source
-            onTextChanged: mediaPlayerBackend.source = text
+        Image {
+            source: mediaPlayerBackend.coverArtUrl
+            width: 200
+            height: 200
+            fillMode: Image.PreserveAspectFit
+            Layout.alignment: Qt.AlignHCenter
+        }
+
+        Text {
+            text: "Title: " + mediaPlayerBackend.title
+            font.pointSize: 24
+            color: "red"
+            Layout.alignment: Qt.AlignHCenter
+        }
+
+        Text {
+            text: "Artist: " + mediaPlayerBackend.artist
+            font.pointSize: 20
+            color: "gray"
+            Layout.alignment: Qt.AlignHCenter
         }
 
         Button {
-            text: "Select File"
-            onClicked: fileDialog.open()
+            id: playPauseButton
+            text: mediaPlayerBackend.playbackState === MediaPlayer.PlayingState ? "Pause" : "Play"
+            Layout.alignment: Qt.AlignHCenter
+            onClicked: { mediaPlayerBackend.playPause() }
         }
 
         Button {
-            text: mediaPlayerBackend.playing ? "Pause" : "Play"
-            onClicked: mediaPlayerBackend.playing = !mediaPlayerBackend.playing
-        }
-
-        MediaPlayer {
-            id: mediaPlayer
-            source: mediaPlayerBackend.source
+            text: "Open File Dialog"
+            Layout.alignment: Qt.AlignHCenter
+            onClicked: { fileDialog.open() }
         }
     }
 }

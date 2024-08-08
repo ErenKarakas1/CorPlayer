@@ -1,7 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QCoreApplication>
-#include <qqmlcontext.h>
+#include <QQmlContext>
 #include "MediaPlayer.h"
 
 int main(int argc, char *argv[])

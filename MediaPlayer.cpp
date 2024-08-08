@@ -1,12 +1,15 @@
-#include "MediaPlayer.h"
 #include <QDebug>
+#include "MediaPlayer.h"
 
-MediaPlayer::MediaPlayer(QObject *parent)
-    : QObject(parent), m_mediaPlayer(new QMediaPlayer(this)), m_playing(false)
+MediaPlayer::MediaPlayer(QObject *parent) :
+    QObject(parent), m_player(new QMediaPlayer(this)), m_audioOutput(new QAudioOutput(this)),
+    m_metadataManager(new MetadataManager(m_player, this))
 {
-    connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged, this, [this](QMediaPlayer::PlaybackState state) {
-        setPlaying(state == QMediaPlayer::PlayingState);
-    });
+    m_player->setAudioOutput(m_audioOutput);
+    m_audioOutput->setVolume(0.5);
+    connect(m_player, &QMediaPlayer::playbackStateChanged, this, &MediaPlayer::playbackStateChanged);
+    connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &MediaPlayer::onMediaStatusChanged);
+    connect(m_metadataManager, &MetadataManager::metadataChanged, this, &MediaPlayer::metadataChanged);
 }
 
 QString MediaPlayer::source() const
@@ -16,30 +19,55 @@ QString MediaPlayer::source() const
 
 void MediaPlayer::setSource(const QString &source)
 {
-    if (m_source == source)
-        return;
-
-    m_source = source;
-    m_mediaPlayer->setSource(QUrl::fromLocalFile(source));
-    qDebug() << "Media source set to:" << source;
-    emit sourceChanged();
+    if (m_source != source) {
+        m_source = source;
+        qDebug() << "Received source:" << source;
+        QUrl url = QUrl::fromUserInput(source);
+        if (!url.isValid()) {
+            qWarning() << "Invalid URL:" << source;
+            return;
+        }
+        qDebug() << "Setting source to:" << url.toString(QUrl::FullyEncoded);
+        m_player->setSource(url);
+        emit sourceChanged();
+    }
 }
 
-bool MediaPlayer::isPlaying() const
+QMediaPlayer::PlaybackState MediaPlayer::playbackState() const
 {
-    return m_playing;
+    return m_player->playbackState();
 }
 
-void MediaPlayer::setPlaying(bool playing)
+QString MediaPlayer::title() const
 {
-    if (m_playing == playing)
-        return;
+    return m_metadataManager->title();
+}
 
-    m_playing = playing;
-    if (playing)
-        m_mediaPlayer->play();
-    else
-        m_mediaPlayer->pause();
+QString MediaPlayer::artist() const
+{
+    return m_metadataManager->artist();
+}
 
-    emit playingChanged();
+QUrl MediaPlayer::coverArtUrl() const
+{
+    return m_metadataManager->coverArtUrl();
+}
+
+void MediaPlayer::playPause()
+{
+    if (m_player->playbackState() == QMediaPlayer::PlayingState) {
+        qDebug() << "Pause button clicked";
+        m_player->pause();
+    } else {
+        qDebug() << "Play button clicked";
+        m_player->play();
+    }
+}
+
+void MediaPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
+{
+    qDebug() << "Media status changed:" << status;
+    if (status == QMediaPlayer::LoadedMedia) {
+        emit metadataChanged();
+    }
 }

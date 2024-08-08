@@ -10,7 +10,6 @@ qt_standard_project_setup(REQUIRES 6.5)
 
 qt_add_executable(appmplayer
     main.cpp
-
 )
 
 qt_add_qml_module(appmplayer
@@ -19,6 +18,7 @@ qt_add_qml_module(appmplayer
     QML_FILES
         Main.qml
         SOURCES MediaPlayer.h MediaPlayer.cpp
+        SOURCES MetadataManager.h MetadataManager.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
