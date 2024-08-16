@@ -2,3 +2,4 @@ build/
 .idea/
 *.opus
 *.mp3
+CMakeLists.txt.user

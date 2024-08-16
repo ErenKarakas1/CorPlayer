@@ -1,17 +1,16 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QCoreApplication>
 #include <QQmlContext>
-#include "MediaPlayer.h"
+#include <QFontDatabase>
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
-    MediaPlayer mediaPlayerBackend;
+    QFontDatabase::addApplicationFont(":/FontAwesome.otf");
 
-    engine.rootContext()->setContextProperty("mediaPlayerBackend", &mediaPlayerBackend);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
