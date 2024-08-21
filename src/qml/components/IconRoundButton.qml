@@ -1,11 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 
-RoundButton {
+Button {
     id: root
 
     property alias symbol: root.text
-    font.family: "FontAwesome"
 
-    radius: 100
+    font.family: "FontAwesome"
 }
