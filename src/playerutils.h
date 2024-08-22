@@ -60,6 +60,6 @@ namespace PlayerUtils {
     Q_ENUM_NS(FilterType)
 
     bool isPlaylist(const QMimeType &mimeType);
-}
+}   // namespace PlayerUtils
 
 #endif //PLAYERUTILS_H

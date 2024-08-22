@@ -13,4 +13,4 @@ namespace PlayerUtils {
                 || mimeType.inherits(QStringLiteral("audio/vnd.rn-realaudio"))
                 || mimeType.inherits(QStringLiteral("audio/x-pn-realaudio"));
     }
-}
+}   // namespace PlayerUtils
