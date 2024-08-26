@@ -1,19 +1,19 @@
-#include "trackprogresswatcher.h"
+#include "trackprogresswatchdog.h"
 #include <QTime>
 
-TrackProgressWatcher::TrackProgressWatcher(QObject *parent) : QObject(parent) {}
+TrackProgressWatchdog::TrackProgressWatchdog(QObject *parent) : QObject(parent) {}
 
-TrackProgressWatcher::~TrackProgressWatcher() = default;
+TrackProgressWatchdog::~TrackProgressWatchdog() = default;
 
-int TrackProgressWatcher::position() const {
+int TrackProgressWatchdog::position() const {
     return m_position;
 }
 
-QString TrackProgressWatcher::progressDuration() const {
+QString TrackProgressWatchdog::progressDuration() const {
     return m_progressDuration;
 }
 
-void TrackProgressWatcher::setPosition(int position) {
+void TrackProgressWatchdog::setPosition(int position) {
     if (m_position == position) {
         return;
     }

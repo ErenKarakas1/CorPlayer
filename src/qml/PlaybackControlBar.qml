@@ -5,18 +5,7 @@ import QtQuick.Layouts
 FocusScope {
     id: playbackControlBar
 
-    property string title
-    property string artist
-    property string albumArtist
-    property string album
-    property string image
-    property int albumID
-
-    property int handlePosition: implicitHeight
-
-    signal openArtist();
-    signal openAlbum();
-    signal openNowPlaying();
+    anchors.fill: parent
 
     PlaybackControl {
         id: playbackControlItem
@@ -24,10 +13,6 @@ FocusScope {
         focus: true
         z: 1
 
-        anchors {
-            left: parent.left
-            right: parent.right
-            bottom: parent.bottom
-        }
+        anchors.fill: parent
     }
 }

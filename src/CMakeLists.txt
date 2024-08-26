@@ -27,10 +27,14 @@ qt_add_executable(appCorPlayer
         trackplaylist.h
         trackplaylistproxymodel.cpp
         trackplaylistproxymodel.h
-        trackprogresswatcher.cpp
-        trackprogresswatcher.h
+        trackprogresswatchdog.cpp
+        trackprogresswatchdog.h
+        trackswatchdog.cpp
+        trackswatchdog.h
         trackmetadatamanager.cpp
         trackmetadatamanager.h
+        filescanner.cpp
+        filescanner.h
 )
 
 qt_add_qml_module(appCorPlayer

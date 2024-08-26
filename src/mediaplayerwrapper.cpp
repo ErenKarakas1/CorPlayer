@@ -1,6 +1,7 @@
 #include "mediaplayerwrapper.h"
 
 #include <QDebug>
+#include <QTimer>
 
 class MediaPlayerWrapperPrivate {
 public:
@@ -21,6 +22,7 @@ MediaPlayerWrapper::MediaPlayerWrapper(QObject *parent) :
 
     connect(&mp->m_player, &QMediaPlayer::sourceChanged, this, &MediaPlayerWrapper::sourceChanged);
     connect(&mp->m_player, &QMediaPlayer::playbackStateChanged, this, &MediaPlayerWrapper::trackStateChanged);
+    connect(&mp->m_player, QOverload<QMediaPlayer::Error, const QString &>::of(&QMediaPlayer::errorOccurred), this, &MediaPlayerWrapper::errorChanged);
     connect(&mp->m_audioOutput, &QAudioOutput::volumeChanged, this, &MediaPlayerWrapper::trackVolumeChanged);
     connect(&mp->m_audioOutput, &QAudioOutput::mutedChanged, this, &MediaPlayerWrapper::trackMutedChanged);
     connect(&mp->m_player, &QMediaPlayer::durationChanged, this, &MediaPlayerWrapper::durationChanged);
@@ -51,6 +53,10 @@ bool MediaPlayerWrapper::isMuted() const {
     return mp->m_audioOutput.isMuted();
 }
 
+QMediaPlayer::Error MediaPlayerWrapper::error() const {
+    return mp->m_player.error();
+}
+
 qint64 MediaPlayerWrapper::duration() const {
     return mp->m_player.duration();
 }
@@ -63,7 +69,7 @@ bool MediaPlayerWrapper::isSeekable() const {
     return mp->m_player.isSeekable();
 }
 
-void MediaPlayerWrapper::setSource(const QUrl& source) {
+void MediaPlayerWrapper::setSource(const QUrl &source) {
     mp->m_player.setSource(source);
 }
 
@@ -110,17 +116,29 @@ void MediaPlayerWrapper::seek(qint64 position) {
 }
 
 void MediaPlayerWrapper::trackStateChanged() {
-    // TODO should use different signals for play, stop, pause?
-    mp->m_playbackState = mp->m_player.playbackState();
-    Q_EMIT playbackStateChanged(mp->m_playbackState);
+    switch (mp->m_player.playbackState()) {
+        case QMediaPlayer::PlaybackState::StoppedState:
+            Q_EMIT stopped();
+            break;
+        case QMediaPlayer::PlaybackState::PlayingState:
+            Q_EMIT playing();
+            break;
+        case QMediaPlayer::PlaybackState::PausedState:
+            Q_EMIT paused();
+            break;
+    }
 }
 
 void MediaPlayerWrapper::trackVolumeChanged() {
-    Q_EMIT volumeChanged();
+    QTimer::singleShot(0, [this]() {
+        Q_EMIT volumeChanged();
+    });
 }
 
 void MediaPlayerWrapper::trackMutedChanged() {
-    Q_EMIT mutedChanged(mp->m_audioOutput.isMuted());
+    QTimer::singleShot(0, [this]() {
+        Q_EMIT mutedChanged(isMuted());
+    });
 }
 
 void MediaPlayerWrapper::savePosition(qint64 position) {

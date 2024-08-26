@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QQmlEngine>
 
-class TrackProgressWatcher : public QObject {
+class TrackProgressWatchdog : public QObject {
     Q_OBJECT
     QML_ELEMENT
 
@@ -12,8 +12,8 @@ class TrackProgressWatcher : public QObject {
     Q_PROPERTY(QString progressDuration READ progressDuration NOTIFY progressDurationChanged)
 
 public:
-    explicit TrackProgressWatcher(QObject *parent = nullptr);
-    ~TrackProgressWatcher() override;
+    explicit TrackProgressWatchdog(QObject *parent = nullptr);
+    ~TrackProgressWatchdog() override;
     [[nodiscard]] int position() const;
     [[nodiscard]] QString progressDuration() const;
 

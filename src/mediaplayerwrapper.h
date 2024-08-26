@@ -17,6 +17,7 @@ class MediaPlayerWrapper : public QObject {
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(QMediaPlayer::MediaStatus status READ status NOTIFY statusChanged)
     Q_PROPERTY(QMediaPlayer::PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
+    Q_PROPERTY(QMediaPlayer::Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool isMuted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
@@ -29,6 +30,7 @@ public:
     [[nodiscard]] QUrl source() const;
     [[nodiscard]] QMediaPlayer::MediaStatus status() const;
     [[nodiscard]] QMediaPlayer::PlaybackState playbackState() const;
+    [[nodiscard]] QMediaPlayer::Error error() const;
     [[nodiscard]] qreal volume() const;
     [[nodiscard]] bool isMuted() const;
     [[nodiscard]] qint64 duration() const;
@@ -39,11 +41,15 @@ Q_SIGNALS:
     void sourceChanged();
     void statusChanged(QMediaPlayer::MediaStatus status);
     void playbackStateChanged(QMediaPlayer::PlaybackState playbackState);
+    void errorChanged(QMediaPlayer::Error error);
     void volumeChanged();
     void mutedChanged(bool isMuted);
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void seekableChanged(bool isSeekable);
+    void playing();
+    void paused();
+    void stopped();
 
 public Q_SLOTS:
     void setSource(const QUrl& newSource);

@@ -11,25 +11,10 @@ import Qt.labs.platform
 ApplicationWindow {
     id: mainWindow
 
-    Material.theme: Material.System
-    height: 720
-    minimumHeight: 540
-
-    // TODO: Decide on a minimum size for the window
-    minimumWidth: 960
-    title: qsTr("CorPlayer")
-    visible: true
-    width: 1280
-
-    Connections {
-        target: CorPlayer.trackPlaylistProxyModel
-        function onPlaylistLoadFailed() {
-            console.error("Failed to load playlist");
-        }
-    }
+    readonly property alias fileDialog: fileDialog
 
     function handleDrop(drop) {
-        console.log("test")
+        console.log("test");
         if (drop.hasUrls) {
             if (!CorPlayer.openFiles(drop.urls)) {
                 console.error("Failed to open files");
@@ -39,13 +24,26 @@ ApplicationWindow {
         }
     }
 
-    DropArea {
-        anchors.fill: parent
-        onDropped: drop => handleDrop(drop)
+    Material.theme: Material.System
+    height: 720
+    minimumHeight: 540
+    minimumWidth: 960
+
+    // TODO: Decide on a minimum size for the window
+
+    title: "CorPlayer"
+    visible: true
+    width: 1280
+
+    Component.onCompleted: {
+        CorPlayer.initialize();
     }
 
-    readonly property alias fileDialog: fileDialog
+    DropArea {
+        anchors.fill: parent
 
+        onDropped: drop => handleDrop(drop)
+    }
     FileDialog {
         id: fileDialog
 
@@ -69,20 +67,45 @@ ApplicationWindow {
             CorPlayer.trackPlaylistProxyModel.loadPlaylist(fileDialog.file);
         }
     }
-
     Rectangle {
         id: mainView
+
         anchors.fill: parent
 
         ColumnLayout {
             anchors.fill: parent
             spacing: 0
 
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: parent.height * 0.9
+                color: "black"
+
+                RowLayout {
+                    Layout.preferredWidth: parent.width
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Button {
+                        Layout.alignment: Qt.AlignLeft
+                        text: "Open Playlist"
+
+                        onClicked: fileDialog.loadPlaylist()
+                    }
+
+                    Button {
+                        Layout.alignment: Qt.AlignRight
+                        text: "Save Playlist"
+
+                        onClicked: fileDialog.savePlaylist()
+                    }
+                }
+            }
             Loader {
                 id: controlBarLoader
-                visible: active
 
+                Layout.fillHeight: true
                 Layout.fillWidth: true
+                visible: active
 
                 sourceComponent: PlaybackControlBar {
                     id: controlBar
@@ -92,9 +115,4 @@ ApplicationWindow {
             }
         }
     }
-
-    Component.onCompleted: {
-        CorPlayer.initialize();
-    }
 }
-

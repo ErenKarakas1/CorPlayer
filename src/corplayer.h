@@ -17,6 +17,7 @@ class MediaPlayerWrapper;
 class ActiveTrackManager;
 class PlayerManager;
 class TrackMetadataManager;
+class TracksWatchdog;
 class QAbstractItemModel;
 class CorPlayerPrivate;
 
@@ -78,9 +79,6 @@ public Q_SLOTS:
     bool openFiles(const QList<QUrl> &files);
     bool openFiles(const QList<QUrl> &files, const QString &workingDirectory);
     void initialize();
-
-    // TODO temporary class to be removed
-    void onAddNewUrl(const QUrl &entryUrl, PlayerUtils::PlaylistEntryType databaseIdType);
 
 private:
     void initializeModels();

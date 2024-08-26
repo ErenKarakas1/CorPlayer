@@ -5,6 +5,7 @@
 #include "activetrackmanager.h"
 #include "playermanager.h"
 #include "trackmetadatamanager.h"
+#include "trackswatchdog.h"
 
 #include <QDebug>
 #include <QDialog>
@@ -30,6 +31,7 @@ public:
     std::unique_ptr<ActiveTrackManager> m_trackManager;
     std::unique_ptr<PlayerManager> m_playerManager;
     std::unique_ptr<TrackMetadataManager> m_metadataManager;
+    std::unique_ptr<TracksWatchdog> m_listener;
 };
 
 CorPlayer::CorPlayer(QObject *parent) :
@@ -91,14 +93,6 @@ void CorPlayer::initializeModels() {
         <void (TrackPlaylistProxyModel::*)
         (const MetadataFields::EntryMetadataList&, PlayerUtils::PlaylistEnqueueMode, PlayerUtils::PlaylistEnqueueTriggerPlay)>
             (&TrackPlaylistProxyModel::enqueue));
-    connect(capp->m_trackPlaylist.get(), &TrackPlaylist::addNewUrl, this, &CorPlayer::onAddNewUrl); //TODO temporary band aid solution
-}
-
-void CorPlayer::onAddNewUrl(const QUrl &entryUrl, PlayerUtils::PlaylistEntryType databaseIdType) {
-    qDebug() << "CorPlayer::onAddNewUrl: " << entryUrl;
-    capp->m_trackPlaylistProxyModel->switchToTrackUrl(entryUrl, PlayerUtils::TriggerPlay);
-    capp->m_mediaPlayer->setSource(entryUrl);
-    capp->m_trackManager->setTrackStatus(QMediaPlayer::LoadedMedia);
 }
 
 void CorPlayer::initializePlayer() {
@@ -113,6 +107,8 @@ void CorPlayer::initializePlayer() {
 
     capp->m_metadataManager = std::make_unique<TrackMetadataManager>();
     Q_EMIT metadataManagerChanged();
+
+    capp->m_listener = std::make_unique<TracksWatchdog>();
 
     capp->m_trackManager->setAlbumRole(TrackPlaylist::AlbumRole);
     capp->m_trackManager->setArtistRole(TrackPlaylist::ArtistRole);
@@ -170,6 +166,10 @@ void CorPlayer::initializePlayer() {
 
     connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::currentTrackChanged, capp->m_metadataManager.get(), &TrackMetadataManager::setCurrentTrack);
     connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::currentTrackDataChanged, capp->m_metadataManager.get(), &TrackMetadataManager::updateCurrentTrackMetadata);
+
+    // TODO temp
+    connect(capp->m_trackPlaylist.get(), &TrackPlaylist::addNewUrl, capp->m_listener.get(), &TracksWatchdog::addNewUrl);
+    connect(capp->m_listener.get(), &TracksWatchdog::trackHasChanged, capp->m_trackPlaylist.get(), &TrackPlaylist::trackChanged);
 }
 
 MetadataFields::EntryMetadataList CorPlayer::sanitizePlaylist(

@@ -52,11 +52,11 @@ GridLayout {
         Layout.row: root.labelsInline ? 0 : 1
         color: root.labelColor
         horizontalAlignment: root.labelsInline ? Text.AlignRight : Text.AlignLeft
-        text: timeWatcher.progressDuration
         verticalAlignment: Text.AlignVCenter
+        text: timeWatchdog.progressDuration
 
-        TrackProgressWatcher {
-            id: timeWatcher
+        TrackProgressWatchdog {
+            id: timeWatchdog
             position: root.position
         }
     }
@@ -95,11 +95,11 @@ GridLayout {
         Layout.row: root.labelsInline ? 0 : 1
         color: root.labelColor
         horizontalAlignment: root.labelsInline ? Text.AlignLeft : Text.AlignRight
-        text: durationWatcher.progressDuration
+        text: durationWatchdog.progressDuration
         verticalAlignment: Text.AlignVCenter
 
-        TrackProgressWatcher {
-            id: durationWatcher
+        TrackProgressWatchdog {
+            id: durationWatchdog
             position: root.duration
         }
     }
