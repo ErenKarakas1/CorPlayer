@@ -36,6 +36,7 @@ public:
         IsValidAlbumArtistRole,
         TrackNumberRole,
         DiscNumberRole,
+        GenreRole,
         LyricistRole,
         ComposerRole,
         CommentRole,

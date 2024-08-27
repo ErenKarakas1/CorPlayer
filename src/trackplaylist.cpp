@@ -42,6 +42,7 @@ QHash<int, QByteArray> TrackPlaylist::roleNames() const {
     roles[static_cast<int>(ColumnRoles::AlbumRole)] = "album";
     roles[static_cast<int>(ColumnRoles::TrackNumberRole)] = "trackNumber";
     roles[static_cast<int>(ColumnRoles::DiscNumberRole)] = "discNumber";
+    roles[static_cast<int>(ColumnRoles::GenreRole)] = "genre";
     roles[static_cast<int>(ColumnRoles::LyricistRole)] = "lyricist";
     roles[static_cast<int>(ColumnRoles::ComposerRole)] = "composer";
     roles[static_cast<int>(ColumnRoles::CommentRole)] = "comment";
