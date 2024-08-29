@@ -150,7 +150,7 @@ public Q_SLOTS:
                  PlayerUtils::PlaylistEnqueueMode enqueueMode,
                  PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
 
-    void setRepeatMode(TrackPlaylistProxyModel::Repeat value);
+    void setRepeatMode(TrackPlaylistProxyModel::Repeat newMode);
     void setShuffleMode(TrackPlaylistProxyModel::Shuffle value);
     void trackInError(const QUrl &sourceInError, QMediaPlayer::Error playerError);
     void skipNextTrack(PlayerUtils::SkipReason reason = PlayerUtils::SkipReason::Automatic);
@@ -241,7 +241,7 @@ private:
                             QSet<QString> &processedFiles,
                             const QUrl &dirName);
 
-    int filterLocalPlaylist(QList<QUrl> &result, const QUrl &PlaylistUrl);
+    int filterLocalPlaylist(QList<QUrl> &result, const QUrl &playlistUrl);
 
     std::unique_ptr<TrackPlaylistProxyModelPrivate> tpp;
 };

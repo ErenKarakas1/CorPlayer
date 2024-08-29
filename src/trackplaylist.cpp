@@ -556,7 +556,9 @@ void TrackPlaylist::trackChanged(const TrackMetadataField &track) {
 
             Q_EMIT dataChanged(index(i, 0), index(i, 0), {});
             continue;
-        } else if (oneEntry.m_entryType != PlayerUtils::Artist && !oneEntry.m_isValid && !oneEntry.m_trackUrl.isValid()) {
+        }
+
+        if (oneEntry.m_entryType != PlayerUtils::Artist && !oneEntry.m_isValid && !oneEntry.m_trackUrl.isValid()) {
             qDebug() << "TrackPlaylist::trackChanged: entered else if";
             if (track.find(TrackMetadataField::key_type::TitleRole) != track.end() &&
                 track.title() != oneEntry.m_title) {
@@ -587,7 +589,9 @@ void TrackPlaylist::trackChanged(const TrackMetadataField &track) {
             Q_EMIT dataChanged(index(i, 0), index(i, 0), {});
 
             break;
-        } else if (oneEntry.m_entryType != PlayerUtils::Artist && !oneEntry.m_isValid && oneEntry.m_trackUrl.isValid()) {
+        }
+
+        if (oneEntry.m_entryType != PlayerUtils::Artist && !oneEntry.m_isValid && oneEntry.m_trackUrl.isValid()) {
             qDebug() << "TrackPlaylist::trackChanged: entered else if2";
             if (track.resourceURI() != oneEntry.m_trackUrl) {
                 qDebug() << "TrackPlaylist::trackChanged: in continue" << track.resourceURI() << "vs" << oneEntry.m_trackUrl;

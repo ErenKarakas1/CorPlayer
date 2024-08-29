@@ -1,5 +1,6 @@
 #include "corplayer.h"
 
+#include <QDir>
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QCoreApplication>
@@ -8,9 +9,7 @@
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-
     QQmlApplicationEngine engine;
-    QFontDatabase::addApplicationFont(":/FontAwesome.otf");
 
     CorPlayer corPlayer;
     constexpr auto qmlUrl = "CorPlayer";
@@ -22,6 +21,11 @@ int main(int argc, char *argv[]) {
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
+
+    if (QFontDatabase::addApplicationFont(":/fonts/FontAwesome.otf") < 0) {
+        qWarning() << "Failed to load FontAwesome.otf";
+    }
+
     engine.loadFromModule(qmlUrl, "Main");
 
     return app.exec();

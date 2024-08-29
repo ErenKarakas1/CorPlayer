@@ -102,36 +102,36 @@ TrackPlaylistProxyModel::~TrackPlaylistProxyModel() = default;
 
 QModelIndex TrackPlaylistProxyModel::index(int row, int column, const QModelIndex &parent) const {
     if (row < 0 || column < 0 || row > rowCount() - 1) {
-        return QModelIndex();
+        return {};
     }
-    return createIndex(row, column);
 
+    return createIndex(row, column);
     Q_UNUSED(parent);
 }
 
 QModelIndex TrackPlaylistProxyModel::mapFromSource(const QModelIndex &sourceIndex) const {
     if (!sourceIndex.isValid()) {
-        return QModelIndex();
+        return {};
     }
 
     return tpp->m_playlistModel->index(mapRowFromSource(sourceIndex.row()), sourceIndex.column());
 }
 
-QItemSelection TrackPlaylistProxyModel::mapSelectionFromSource(const QItemSelection &selection) const {
-    QItemSelection mappedSelection;
-    for (const QItemSelectionRange &range : selection) {
+QItemSelection TrackPlaylistProxyModel::mapSelectionFromSource(const QItemSelection &sourceSelection) const {
+    QItemSelection proxySelection;
+    for (const QItemSelectionRange &range : sourceSelection) {
         QModelIndex proxyTopLeft = mapFromSource(range.topLeft());
         QModelIndex proxyBottomRight = mapFromSource(range.bottomRight());
-        mappedSelection.append(QItemSelectionRange(proxyTopLeft, proxyBottomRight));
+        proxySelection.append(QItemSelectionRange(proxyTopLeft, proxyBottomRight));
     }
 
-    return mappedSelection;
+    return proxySelection;
 }
 
-QItemSelection TrackPlaylistProxyModel::mapSelectionToSource(const QItemSelection &selection) const
+QItemSelection TrackPlaylistProxyModel::mapSelectionToSource(const QItemSelection &proxySelection) const
 {
     QItemSelection sourceSelection;
-    for (const QItemSelectionRange &range : selection) {
+    for (const QItemSelectionRange &range : proxySelection) {
         QModelIndex sourceTopLeft = mapToSource(range.topLeft());
         QModelIndex sourceBottomRight = mapToSource(range.bottomRight());
         sourceSelection.append(QItemSelectionRange(sourceTopLeft, sourceBottomRight));
@@ -142,7 +142,7 @@ QItemSelection TrackPlaylistProxyModel::mapSelectionToSource(const QItemSelectio
 
 QModelIndex TrackPlaylistProxyModel::mapToSource(const QModelIndex &proxyIndex) const {
     if (!proxyIndex.isValid()) {
-        return QModelIndex();
+        return {};
     }
 
     return tpp->m_playlistModel->index(mapRowToSource(proxyIndex.row()), proxyIndex.column());
@@ -182,7 +182,7 @@ int TrackPlaylistProxyModel::columnCount(const QModelIndex &parent) const {
 
 QModelIndex TrackPlaylistProxyModel::parent(const QModelIndex &child) const {
     Q_UNUSED(child);
-    return QModelIndex();
+    return {};
 }
 
 bool TrackPlaylistProxyModel::hasChildren(const QModelIndex &parent) const {
@@ -211,7 +211,7 @@ void TrackPlaylistProxyModel::setPlaylistModel(TrackPlaylist *playlistModel) {
     if (tpp->m_playlistModel) {
         connect(playlistModel, &QAbstractItemModel::rowsAboutToBeInserted, this, &TrackPlaylistProxyModel::sourceRowsAboutToBeInserted);
         connect(playlistModel, &QAbstractItemModel::rowsAboutToBeRemoved, this, &TrackPlaylistProxyModel::sourceRowsAboutToBeRemoved);
-        connect(playlistModel, &QAbstractItemModel::rowsAboutToBeMoved, this, &TrackPlaylistProxyModel::sourceRowsAboutToBeMoved);
+        connect(playlistModel, &QAbstractItemModel::rowsAboutToBeMoved, this    , &TrackPlaylistProxyModel::sourceRowsAboutToBeMoved);
         connect(playlistModel, &QAbstractItemModel::rowsInserted, this, &TrackPlaylistProxyModel::sourceRowsInserted);
         connect(playlistModel, &QAbstractItemModel::rowsRemoved, this, &TrackPlaylistProxyModel::sourceRowsRemoved);
         connect(playlistModel, &QAbstractItemModel::rowsMoved, this, &TrackPlaylistProxyModel::sourceRowsMoved);
@@ -548,9 +548,9 @@ int TrackPlaylistProxyModel::remainingTracksDuration() const {
 int TrackPlaylistProxyModel::remainingTracks() const {
     if (!tpp->m_currentTrack.isValid() || (tpp->m_repeatMode == Repeat::CurrentTrack) || (tpp->m_repeatMode == Repeat::Playlist)) {
         return -1;
-    } else {
-        return rowCount() - tpp->m_currentTrack.row() - 1;
     }
+
+    return rowCount() - tpp->m_currentTrack.row() - 1;
 }
 
 int TrackPlaylistProxyModel::tracksCount() const {
@@ -564,21 +564,21 @@ int TrackPlaylistProxyModel::currentTrackRow() const {
 void TrackPlaylistProxyModel::enqueue(const MetadataFields::MusicMetadataField &newEntry,
     const QString &newEntryTitle, PlayerUtils::PlaylistEnqueueMode enqueueMode,
     PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay) {
-    qDebug() << "TrackPlaylistProxyModel::enqueue: Enqueueing track with title " << newEntryTitle;
+
     enqueue({{newEntry, newEntryTitle, {}}}, enqueueMode, triggerPlay);
 }
 
 void TrackPlaylistProxyModel::enqueue(const QUrl &entryUrl,
     PlayerUtils::PlaylistEnqueueMode enqueueMode,
     PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay) {
-    qDebug() << "TrackPlaylistProxyModel::enqueue: Enqueueing track with URL " << entryUrl;
+
     enqueue({{{{MetadataFields::ElementTypeRole, PlayerUtils::Track}}, {}, entryUrl}}, enqueueMode, triggerPlay);
 }
 
 void TrackPlaylistProxyModel::enqueue(const MetadataFields::EntryMetadataList &newEntries,
     PlayerUtils::PlaylistEnqueueMode enqueueMode,
     PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay) {
-    qDebug() << "TrackPlaylistProxyModel::enqueue: Enqueueing " << newEntries.count() << " tracks";
+
     if (newEntries.isEmpty()) {
         return;
     }
@@ -590,8 +590,6 @@ void TrackPlaylistProxyModel::enqueue(const MetadataFields::EntryMetadataList &n
             clearPlaylist();
         }
     }
-
-    qDebug() << "TrackPlaylistProxyModel::enqueue: Enqueue mode is " << enqueueMode;
 
     const int enqueueIndex = enqueueMode == PlayerUtils::AfterCurrentTrack ? mapRowToSource(tpp->m_currentTrack.row()) + 1 : -1;
     tpp->m_playlistModel->enqueueMultipleEntries(newEntries, enqueueIndex);
@@ -838,7 +836,7 @@ bool TrackPlaylistProxyModel::savePlaylist(const QUrl &fileName) {
     }
 
     QList<QString> listOfFilePaths;
-    
+
     for (int i = 0; i < rowCount(); ++i) {
         if (data(index(i,0), TrackPlaylist::IsValidRole).toBool()) {
             listOfFilePaths.append(data(index(i,0), TrackPlaylist::ResourceRole).toUrl().toLocalFile());

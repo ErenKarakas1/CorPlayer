@@ -5,6 +5,5 @@ Button {
     id: root
 
     property alias symbol: root.text
-
     font.family: "FontAwesome"
 }

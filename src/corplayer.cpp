@@ -117,7 +117,7 @@ void CorPlayer::initializePlayer() {
     capp->m_trackManager->setIsPlayingRole(TrackPlaylist::IsPlayingRole);
     capp->m_trackManager->setPlaylistModel(capp->m_trackPlaylistProxyModel.get());
 
-    QObject::connect(capp->m_trackManager.get(), &ActiveTrackManager::trackPlay, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::play);
+    connect(capp->m_trackManager.get(), &ActiveTrackManager::trackPlay, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::play);
     connect(capp->m_trackManager.get(), &ActiveTrackManager::trackPause, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::pause);
     connect(capp->m_trackManager.get(), &ActiveTrackManager::trackStop, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::stop);
     connect(capp->m_trackManager.get(), &ActiveTrackManager::seek, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::seek);
@@ -144,11 +144,11 @@ void CorPlayer::initializePlayer() {
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::durationChanged, capp->m_trackManager.get(), &ActiveTrackManager::setTrackDuration);
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::seekableChanged, capp->m_trackManager.get(), &ActiveTrackManager::setTrackIsSeekable);
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::positionChanged, capp->m_trackManager.get(), &ActiveTrackManager::setTrackPosition);
-    
+
     connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::currentTrackChanged, capp->m_playerManager.get(), &PlayerManager::setCurrentTrack);
     connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::previousTrackChanged, capp->m_playerManager.get(), &PlayerManager::setPreviousTrack);
     connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::nextTrackChanged, capp->m_playerManager.get(), &PlayerManager::setNextTrack);
-    
+
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::playing, capp->m_playerManager.get(), &PlayerManager::playerPlaying);
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::paused, capp->m_playerManager.get(), &PlayerManager::playerPausedOrStopped);
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::stopped, capp->m_playerManager.get(), &PlayerManager::playerPausedOrStopped);

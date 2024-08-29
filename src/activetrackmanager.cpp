@@ -36,7 +36,7 @@ int ActiveTrackManager::isPlayingRole() const {
 
 QUrl ActiveTrackManager::trackSource() const {
     if (!m_currentTrack.isValid()) {
-        return QUrl();
+        return {};
     }
 
     return m_currentTrack.data(m_urlRole).toUrl();
@@ -401,19 +401,21 @@ void ActiveTrackManager::setTrackPosition(qint64 newTrackPosition) {
 
     m_trackPosition = newTrackPosition;
     Q_EMIT trackPositionChanged();
-    QTimer::singleShot(0, this, [this]() { Q_EMIT trackControlPositionChanged(); });
+    QTimer::singleShot(0, this, [this]() {
+        Q_EMIT trackControlPositionChanged();
+    });
 }
 
 void ActiveTrackManager::setTrackControlPosition(int newTrackControlPosition) {
     Q_EMIT seek(newTrackControlPosition);
 }
 
-void ActiveTrackManager::setPersistentState(const QVariantMap &persistentStateValue) {
-    if (m_persistentState == persistentStateValue) {
+void ActiveTrackManager::setPersistentState(const QVariantMap &newPersistentState) {
+    if (m_persistentState == newPersistentState) {
         return;
     }
 
-    m_persistentState = persistentStateValue;
+    m_persistentState = newPersistentState;
 
     Q_EMIT persistentStateChanged();
 
@@ -432,25 +434,18 @@ void ActiveTrackManager::playlistFinished() {
 
 void ActiveTrackManager::tracksDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                                           const QList<int> &roles) {
-    qDebug() << "ActiveTrackManager::tracksDataChanged" << topLeft << bottomRight << roles;
-    qDebug() << "ActiveTrackManager::tracksDataChanged - currentTrack" << m_currentTrack;
 
     if (!m_currentTrack.isValid()) {
-        qDebug() << "ActiveTrackManager::tracksDataChanged - currentTrack is not valid";
         return;
     }
 
     if (m_currentTrack.row() > bottomRight.row() || m_currentTrack.row() < topLeft.row()) {
-        qDebug() << "ActiveTrackManager::tracksDataChanged - currentTrack is not in the range";
         return;
     }
 
     if (m_currentTrack.column() > bottomRight.column() || m_currentTrack.column() < topLeft.column()) {
-        qDebug() << "ActiveTrackManager::tracksDataChanged - currentTrack is not in the range2";
         return;
     }
-
-    qDebug() << "ActiveTrackManager::tracksDataChanged - currentTrack is in the range";
 
     if (roles.isEmpty()) {
         notifyTrackSourceProperty();
@@ -459,7 +454,6 @@ void ActiveTrackManager::tracksDataChanged(const QModelIndex &topLeft, const QMo
     else {
         for (auto oneRole : roles) {
             if (oneRole == m_urlRole) {
-                qDebug() << "ActiveTrackManager::tracksDataChanged - urlRole";
                 notifyTrackSourceProperty();
                 restorePreviousState();
             }
@@ -477,7 +471,9 @@ void ActiveTrackManager::notifyTrackSourceProperty() {
 }
 
 void ActiveTrackManager::triggerPlay() {
-    QTimer::singleShot(0, this, [this]() { Q_EMIT trackPlay(); });
+    QTimer::singleShot(0, this, [this]() {
+        Q_EMIT trackPlay();
+    });
 }
 
 void ActiveTrackManager::triggerPause() {
