@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/fonts">
+        <file alias="qmldir">fonts/qmldir</file>
+        <file alias="Fonts.qml">fonts/Fonts.qml</file>
+        <file alias="FontAwesome.otf">fonts/Font Awesome 6 Free-Solid-900.otf</file>
+    </qresource>
+</RCC>

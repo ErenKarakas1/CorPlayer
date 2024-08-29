@@ -1,9 +1,14 @@
 import QtQuick
 import QtQuick.Controls
 
+import "fonts"
+
 Button {
     id: root
 
     property alias symbol: root.text
-    font.family: "FontAwesome"
+    font.family: Fonts.fontAwesome
 }
+
+
+

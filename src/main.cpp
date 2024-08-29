@@ -22,10 +22,6 @@ int main(int argc, char *argv[]) {
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
 
-    if (QFontDatabase::addApplicationFont(":/fonts/FontAwesome.otf") < 0) {
-        qWarning() << "Failed to load FontAwesome.otf";
-    }
-
     engine.loadFromModule(qmlUrl, "Main");
 
     return app.exec();

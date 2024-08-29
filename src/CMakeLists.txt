@@ -36,7 +36,7 @@ qt_add_executable(appCorPlayer
         trackmetadatamanager.h
         filescanner.cpp
         filescanner.h
-        fonts/fonts.qrc
+        qml/components/fonts.qrc
 )
 
 qt_add_qml_module(appCorPlayer
@@ -49,6 +49,8 @@ qt_add_qml_module(appCorPlayer
         qml/components/IconRoundButton.qml
         qml/components/StepSlider.qml
         qml/components/DurationSlider.qml
+        qml/components/fonts/Fonts.qml
+        qml/components/fonts/qmldir
 )
 
 
