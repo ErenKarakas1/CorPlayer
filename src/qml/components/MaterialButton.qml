@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Shapes
 import QtQuick.Controls.Material
 
 Button {

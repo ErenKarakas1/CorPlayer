@@ -51,9 +51,12 @@ qt_add_qml_module(appCorPlayer
         qml/Main.qml
         qml/PlaybackControl.qml
         qml/PlaybackControlBar.qml
+        qml/VolumeControl.qml
         qml/components/StepSlider.qml
         qml/components/DurationSlider.qml
         qml/components/MaterialButton.qml
+        qml/components/VolumeSlider.qml
+        qml/components/TrackInfo.qml
         RESOURCES
         ../icons/icons.qrc
 )
