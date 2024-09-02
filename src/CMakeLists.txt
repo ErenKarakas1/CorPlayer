@@ -7,6 +7,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Quick Multimedia Widgets Gui)
+find_package(ZLIB)
+find_package(TagLib 2.0.2 REQUIRED)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -36,7 +38,10 @@ qt_add_executable(appCorPlayer
         trackmetadatamanager.h
         filescanner.cpp
         filescanner.h
-        qml/components/fonts.qrc
+#        taglib/tagreader.cpp
+#        taglib/tagreader.h
+#        taglib/tracktags.h
+#        taglib/tracktags.cpp
 )
 
 qt_add_qml_module(appCorPlayer
@@ -46,11 +51,11 @@ qt_add_qml_module(appCorPlayer
         qml/Main.qml
         qml/PlaybackControl.qml
         qml/PlaybackControlBar.qml
-        qml/components/IconRoundButton.qml
         qml/components/StepSlider.qml
         qml/components/DurationSlider.qml
-        qml/components/fonts/Fonts.qml
-        qml/components/fonts/qmldir
+        qml/components/MaterialButton.qml
+        RESOURCES
+        ../icons/icons.qrc
 )
 
 
@@ -71,15 +76,8 @@ target_link_libraries(appCorPlayer
         Qt6::Multimedia
         Qt6::Widgets
         Qt6::Gui
+        TagLib::tag
 )
-
-## Create a local directory for fonts in the build/install directory
-#set(FONT_INSTALL_DIR "${CMAKE_BINARY_DIR}/fonts")
-#file(MAKE_DIRECTORY "${FONT_INSTALL_DIR}")
-#file(COPY ${CMAKE_SOURCE_DIR}/qml/fonts/ DESTINATION ${FONT_INSTALL_DIR})
-#install(DIRECTORY ${CMAKE_BINARY_DIR}/fonts/
-#        DESTINATION ${CMAKE_INSTALL_PREFIX}/fonts
-#        FILES_MATCHING PATTERN "*.otf")
 
 include(GNUInstallDirs)
 install(TARGETS appCorPlayer

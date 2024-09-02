@@ -30,9 +30,11 @@ FocusScope {
     ColumnLayout {
         id: playbackControlLayout
         anchors.fill: parent
+        spacing: 10
 
         DurationSlider {
             id: durationSlider
+
             Layout.maximumWidth: parent.width * 0.5
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
 
@@ -46,33 +48,33 @@ FocusScope {
 
         RowLayout {
             id: playbackControlRow
+
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
 
-            spacing: 0
-
-            IconRoundButton {
+            ToolButton {
                 id: goBackwardButton
 
-                symbol: "\uf048"
-
+                enabled: playbackControl.playEnabled
+                icon.name: "qrc:/icons/fa_backward"
                 onClicked: playbackControl.playPrevious()
             }
 
-            IconRoundButton {
+            MaterialButton {
                 id: playPauseButton
 
                 Layout.alignment: Qt.AlignHCenter
-                symbol: "\uf04b"
 
+                enabled: playbackControl.playEnabled
+                icon.name: playbackControl.isPlaying ? "qrc:/icons/fa_pause" : "qrc:/icons/fa_play"
                 onClicked: playbackControl.isPlaying ? playbackControl.pause() : playbackControl.play()
             }
 
-            IconRoundButton {
+            ToolButton {
                 id: goForwardButton
 
-                symbol: "\uf051"
-
+                enabled: playbackControl.playEnabled
+                icon.name: "qrc:/icons/fa_forward"
                 onClicked: playbackControl.playNext()
             }
         }

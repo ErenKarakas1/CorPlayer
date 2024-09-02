@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="fa_backward">backward-step-solid.svg</file>
+        <file alias="fa_forward">forward-step-solid.svg</file>
+        <file alias="fa_pause">pause-solid.svg</file>
+        <file alias="fa_play">play-solid.svg</file>
+        <file alias="fa_repeat">repeat-solid.svg</file>
+        <file alias="fa_shuffle">shuffle-solid.svg</file>
+        <file alias="fa_volume_high">volume-high-solid.svg</file>
+        <file alias="fa_volume_low">volume-low-solid.svg</file>
+        <file alias="fa_volume_off">volume-off-solid.svg</file>
+    </qresource>
+</RCC>
