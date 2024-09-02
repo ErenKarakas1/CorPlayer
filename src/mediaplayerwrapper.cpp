@@ -14,6 +14,7 @@ public:
 
     QMediaPlayer::PlaybackState m_playbackState = m_player.playbackState();
     QMediaPlayer::MediaStatus m_status = m_player.mediaStatus();;
+    bool m_queuedStatusUpdates = false; // Thread safe status updates
 };
 
 MediaPlayerWrapper::MediaPlayerWrapper(QObject *parent) :
@@ -21,10 +22,11 @@ MediaPlayerWrapper::MediaPlayerWrapper(QObject *parent) :
     mp->m_player.setAudioOutput(&mp->m_audioOutput);
 
     connect(&mp->m_player, &QMediaPlayer::sourceChanged, this, &MediaPlayerWrapper::sourceChanged);
-    connect(&mp->m_player, &QMediaPlayer::playbackStateChanged, this, &MediaPlayerWrapper::trackStateChanged);
+    connect(&mp->m_player, &QMediaPlayer::playbackStateChanged, this, &MediaPlayerWrapper::queueStatusChanged);
     connect(&mp->m_player, QOverload<QMediaPlayer::Error, const QString &>::of(&QMediaPlayer::errorOccurred), this, &MediaPlayerWrapper::errorChanged);
     connect(&mp->m_audioOutput, &QAudioOutput::volumeChanged, this, &MediaPlayerWrapper::trackVolumeChanged);
     connect(&mp->m_audioOutput, &QAudioOutput::mutedChanged, this, &MediaPlayerWrapper::trackMutedChanged);
+    connect(&mp->m_player, &QMediaPlayer::mediaStatusChanged, this, &MediaPlayerWrapper::queueStatusChanged);
     connect(&mp->m_player, &QMediaPlayer::durationChanged, this, &MediaPlayerWrapper::durationChanged);
     connect(&mp->m_player, &QMediaPlayer::positionChanged, this, &MediaPlayerWrapper::positionChanged);
     connect(&mp->m_player, &QMediaPlayer::seekableChanged, this, &MediaPlayerWrapper::seekableChanged);
@@ -145,5 +147,75 @@ void MediaPlayerWrapper::savePosition(qint64 position) {
     if (!mp->m_hasSavedPosition) {
         mp->m_hasSavedPosition = true;
         mp->m_savedPosition = position;
+    }
+}
+
+/**
+ * We should use QMetaObject::invokeMethod and Qt::QueuedConnection to emit signals in the main thread
+ * Direct access is discouraged
+ * https://stackoverflow.com/questions/45696232/qmediaplayer-not-loading-media-and-not-emitting-mediastatuschanged-signals
+ */
+
+void MediaPlayerWrapper::trackStateSignalChanges(QMediaPlayer::PlaybackState newState) {
+    QMetaObject::invokeMethod(this, [this, newState]() {
+        Q_EMIT playbackStateChanged(newState);
+    }, Qt::QueuedConnection);
+}
+
+void MediaPlayerWrapper::trackStatusSignalChanges(QMediaPlayer::MediaStatus newStatus) {
+    QMetaObject::invokeMethod(this, [this, newStatus]() {
+        Q_EMIT statusChanged(newStatus);
+    }, Qt::QueuedConnection);
+}
+
+void MediaPlayerWrapper::trackDurationSignalChanges(qint64 newDuration) {
+    QMetaObject::invokeMethod(this, [this, newDuration]() {
+        Q_EMIT durationChanged(newDuration);
+    }, Qt::QueuedConnection);
+}
+
+void MediaPlayerWrapper::trackPositionSignalChanges(qint64 newPosition) {
+    QMetaObject::invokeMethod(this, [this, newPosition]() {
+        Q_EMIT positionChanged(newPosition);
+    }, Qt::QueuedConnection);
+}
+
+void MediaPlayerWrapper::trackSeekableSignalChanges(bool isSeekable) {
+    QMetaObject::invokeMethod(this, [this, isSeekable]() {
+        Q_EMIT seekableChanged(isSeekable);
+    }, Qt::QueuedConnection);
+}
+
+void MediaPlayerWrapper::trackVolumeSignalChanges() {
+    QMetaObject::invokeMethod(this, [this]() {
+        Q_EMIT volumeChanged();
+    }, Qt::QueuedConnection);
+}
+
+void MediaPlayerWrapper::trackMutedSignalChanges(bool isMuted) {
+    QMetaObject::invokeMethod(this, [this, isMuted]() {
+        Q_EMIT mutedChanged(isMuted);
+    }, Qt::QueuedConnection);
+}
+
+void MediaPlayerWrapper::notifyStatusChanges() {
+    mp->m_queuedStatusUpdates = false;
+
+    if (mp->m_player.mediaStatus() != mp->m_status) {
+        mp->m_status = mp->m_player.mediaStatus();
+        Q_EMIT statusChanged(mp->m_status);
+    }
+
+    if (mp->m_player.playbackState() != mp->m_playbackState) {
+        mp->m_playbackState = mp->m_player.playbackState();
+        Q_EMIT playbackStateChanged(mp->m_playbackState);
+        trackStateChanged();
+    }
+}
+
+void MediaPlayerWrapper::queueStatusChanged() {
+    if (!mp->m_queuedStatusUpdates) {
+        QTimer::singleShot(0, this, &MediaPlayerWrapper::notifyStatusChanges);
+        mp->m_queuedStatusUpdates = true;
     }
 }

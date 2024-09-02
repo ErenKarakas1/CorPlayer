@@ -211,7 +211,7 @@ void TrackPlaylistProxyModel::setPlaylistModel(TrackPlaylist *playlistModel) {
     if (tpp->m_playlistModel) {
         connect(playlistModel, &QAbstractItemModel::rowsAboutToBeInserted, this, &TrackPlaylistProxyModel::sourceRowsAboutToBeInserted);
         connect(playlistModel, &QAbstractItemModel::rowsAboutToBeRemoved, this, &TrackPlaylistProxyModel::sourceRowsAboutToBeRemoved);
-        connect(playlistModel, &QAbstractItemModel::rowsAboutToBeMoved, this    , &TrackPlaylistProxyModel::sourceRowsAboutToBeMoved);
+        connect(playlistModel, &QAbstractItemModel::rowsAboutToBeMoved, this, &TrackPlaylistProxyModel::sourceRowsAboutToBeMoved);
         connect(playlistModel, &QAbstractItemModel::rowsInserted, this, &TrackPlaylistProxyModel::sourceRowsInserted);
         connect(playlistModel, &QAbstractItemModel::rowsRemoved, this, &TrackPlaylistProxyModel::sourceRowsRemoved);
         connect(playlistModel, &QAbstractItemModel::rowsMoved, this, &TrackPlaylistProxyModel::sourceRowsMoved);

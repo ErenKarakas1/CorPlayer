@@ -70,6 +70,15 @@ private Q_SLOTS:
 
 private:
     void savePosition(qint64 position);
+    void trackStateSignalChanges(QMediaPlayer::PlaybackState newState);
+    void trackStatusSignalChanges(QMediaPlayer::MediaStatus newStatus);
+    void trackDurationSignalChanges(qint64 newDuration);
+    void trackPositionSignalChanges(qint64 newPosition);
+    void trackVolumeSignalChanges();
+    void trackMutedSignalChanges(bool isMuted);
+    void trackSeekableSignalChanges(bool isSeekable);
+    void queueStatusChanged();
+    void notifyStatusChanges();
 
     friend class MediaPlayerWrapperPrivate;
     std::unique_ptr<MediaPlayerWrapperPrivate> mp;
