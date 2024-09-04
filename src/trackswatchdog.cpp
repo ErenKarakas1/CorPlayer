@@ -1,7 +1,6 @@
 #include "trackswatchdog.h"
-#include "filescanner.h"
 
-#include <QDebug>
+#include "filescanner.h"
 
 class TracksWatchdogPrivate {
 public:
@@ -13,9 +12,6 @@ TracksWatchdog::TracksWatchdog(QObject *parent) : QObject(parent), tw(std::make_
 TracksWatchdog::~TracksWatchdog() = default;
 
 void TracksWatchdog::addNewUrl(const QUrl &entryUrl, PlayerUtils::PlaylistEntryType databaseIdType) {
-    qDebug() << "TracksWatchdog::addNewUrl" << entryUrl;
     auto newTrack = tw->m_fileScanner.scanFile(entryUrl);
-
-    qDebug() << "TracksWatchdog::addNewUrl" << newTrack;
     Q_EMIT trackHasChanged(newTrack);
 }

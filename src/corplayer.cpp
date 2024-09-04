@@ -1,6 +1,8 @@
 #include "corplayer.h"
-#include "trackplaylist.h"
-#include "trackplaylistproxymodel.h"
+
+#include "playlist/trackplaylist.h"
+#include "playlist/trackplaylistproxymodel.h"
+
 #include "mediaplayerwrapper.h"
 #include "activetrackmanager.h"
 #include "playermanager.h"

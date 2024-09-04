@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     QQmlApplicationEngine engine;
 
     CorPlayer corPlayer;
-    constexpr auto qmlUrl = "CorPlayer";
+    const auto qmlUrl = QStringLiteral("CorPlayer");
 
     engine.rootContext()->setContextProperty(qmlUrl, &corPlayer);
     QObject::connect(

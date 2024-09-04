@@ -9,8 +9,52 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 6.5 REQUIRED COMPONENTS Quick Multimedia Widgets Gui)
 find_package(ZLIB)
 find_package(TagLib 2.0.2 REQUIRED)
+#find_package(GTest)
+#find_library(GMOCK_LIBRARY gmock)
+#
+#if (GTest_FOUND AND GMOCK_LIBRARY)
+#    add_subdirectory(tests)
+#endif()
 
 qt_standard_project_setup(REQUIRES 6.5)
+
+add_compile_options(
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wunused
+        -Wshadow
+        -Wundef
+        -Wuninitialized
+        -Wredundant-decls
+        -Wcast-align
+        -Winit-self
+        -Wmissing-include-dirs
+        -Wstrict-overflow=2
+        -Wunused-parameter
+        -Wdisabled-optimization
+        -Woverloaded-virtual
+        -Wold-style-cast
+)
+
+add_definitions(
+        -DQT_STRICT_ITERATORS
+        -DQT_NO_CAST_FROM_BYTEARRAY
+        -DQT_USE_QSTRINGBUILDER
+        -DQT_NO_URL_CAST_FROM_STRING
+        -DQT_NO_CAST_FROM_ASCII
+        -DQT_NO_CAST_TO_ASCII
+        -DQT_ASCII_CAST_WARNINGS
+        -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT
+        -DQT_NO_FOREACH
+        -DQT_NO_KEYWORDS
+        -DQT_NO_SIGNALS_SLOTS_KEYWORDS
+        -DQT_DISABLE_DEPRECATED_BEFORE=0x060200
+)
+
+include_directories(
+        ${CMAKE_SOURCE_DIR}/playlist
+)
 
 qt_add_executable(appCorPlayer
         main.cpp
@@ -26,10 +70,12 @@ qt_add_executable(appCorPlayer
         playermanager.h
         playerutils.cpp
         playerutils.h
-        trackplaylist.cpp
-        trackplaylist.h
-        trackplaylistproxymodel.cpp
-        trackplaylistproxymodel.h
+        playlist/trackplaylist.cpp
+        playlist/trackplaylist.h
+        playlist/trackplaylistproxymodel.cpp
+        playlist/trackplaylistproxymodel.h
+        playlist/playlistparser.cpp
+        playlist/playlistparser.h
         trackprogresswatchdog.cpp
         trackprogresswatchdog.h
         trackswatchdog.cpp
@@ -51,11 +97,10 @@ qt_add_qml_module(appCorPlayer
         qml/Main.qml
         qml/PlaybackControl.qml
         qml/PlaybackControlBar.qml
-        qml/VolumeControl.qml
         qml/components/StepSlider.qml
         qml/components/DurationSlider.qml
         qml/components/MaterialButton.qml
-        qml/components/VolumeSlider.qml
+        qml/components/VolumeControl.qml
         qml/components/TrackInfo.qml
         RESOURCES
         ../icons/icons.qrc
@@ -79,7 +124,7 @@ target_link_libraries(appCorPlayer
         Qt6::Multimedia
         Qt6::Widgets
         Qt6::Gui
-        TagLib::tag
+        TagLib::TagLib
 )
 
 include(GNUInstallDirs)

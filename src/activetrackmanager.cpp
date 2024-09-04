@@ -1,5 +1,6 @@
 #include "activetrackmanager.h"
-#include "trackplaylist.h"
+
+#include "playlist/trackplaylist.h"
 
 #include <QTimer>
 #include <QDateTime>
@@ -112,7 +113,7 @@ void ActiveTrackManager::setCurrentTrack(const QPersistentModelIndex &newCurrent
         case QMediaPlayer::PlayingState:
         case QMediaPlayer::PausedState:
             triggerStop();
-            if (m_isPlaying && m_currentTrack.isValid()) {
+            if (m_isPlaying && !m_currentTrack.isValid()) {
                 m_isPlaying = false;
             }
             m_skippingCurrentTrack = true;
@@ -252,18 +253,18 @@ void ActiveTrackManager::setTrackPlaybackState(QMediaPlayer::PlaybackState newTr
                 if (m_trackStatus == QMediaPlayer::EndOfMedia || m_trackStatus == QMediaPlayer::InvalidMedia) {
                     triggerSkipNextTrack();
                 }
-                if (m_playlistModel &&m_currentTrack.isValid()) {
+                if (m_playlistModel && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::NotPlaying, m_isPlayingRole);
                 }
                 break;
             case QMediaPlayer::PlayingState:
-                if (m_playlistModel &&m_currentTrack.isValid()) {
+                if (m_playlistModel && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::IsPlaying, m_isPlayingRole);
                     Q_EMIT trackStartedPlaying(m_currentTrack.data(m_urlRole).toUrl(), QDateTime::currentDateTime());
                 }
                 break;
             case QMediaPlayer::PausedState:
-                if (m_playlistModel &&m_currentTrack.isValid()) {
+                if (m_playlistModel && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::IsPaused, m_isPlayingRole);
                 }
                 break;
@@ -274,22 +275,18 @@ void ActiveTrackManager::setTrackPlaybackState(QMediaPlayer::PlaybackState newTr
             case QMediaPlayer::StoppedState:
                 notifyTrackSourceProperty();
                 m_skippingCurrentTrack = false;
-                if (m_playlistModel &&m_previousTrack.isValid()) {
+                if (m_playlistModel && m_previousTrack.isValid()) {
                     m_playlistModel->setData(m_previousTrack, TrackPlaylist::NotPlaying, m_isPlayingRole);
                 }
                 break;
             case QMediaPlayer::PlayingState:
-                if (m_playlistModel &&m_currentTrack
-                .
-                isValid()
-                )
-                {
+                if (m_playlistModel && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::IsPlaying, m_isPlayingRole);
                     Q_EMIT trackStartedPlaying(m_currentTrack.data(m_urlRole).toUrl(), QDateTime::currentDateTime());
                 }
                 break;
             case QMediaPlayer::PausedState:
-                if (m_playlistModel &&m_currentTrack.isValid()) {
+                if (m_playlistModel && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::IsPaused, m_isPlayingRole);
                 }
                 break;

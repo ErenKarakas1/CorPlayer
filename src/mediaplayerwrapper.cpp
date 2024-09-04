@@ -1,6 +1,5 @@
 #include "mediaplayerwrapper.h"
 
-#include <QDebug>
 #include <QTimer>
 
 class MediaPlayerWrapperPrivate {
@@ -13,7 +12,7 @@ public:
     bool m_hasSavedPosition = false;
 
     QMediaPlayer::PlaybackState m_playbackState = m_player.playbackState();
-    QMediaPlayer::MediaStatus m_status = m_player.mediaStatus();;
+    QMediaPlayer::MediaStatus m_status = m_player.mediaStatus();
     bool m_queuedStatusUpdates = false; // Thread safe status updates
 };
 
@@ -47,8 +46,15 @@ QMediaPlayer::PlaybackState MediaPlayerWrapper::playbackState() const {
 }
 
 qreal MediaPlayerWrapper::volume() const {
-    qDebug() << mp->m_audioOutput.volume() * 100;
-    return mp->m_audioOutput.volume() * 100;
+    /**
+     *  We should convert between linear for audio output and logarithmic for human ear
+     *  https://doc.qt.io/qt-6/qtaudio.html
+     */
+    const auto linearVolume = mp->m_audioOutput.volume();
+    const auto logarithmicVolume = QtAudio::convertVolume(linearVolume,
+        QtAudio::LinearVolumeScale, QtAudio::LogarithmicVolumeScale);
+
+    return logarithmicVolume * 100;
 }
 
 bool MediaPlayerWrapper::isMuted() const {
@@ -93,7 +99,10 @@ void MediaPlayerWrapper::stop() {
 }
 
 void MediaPlayerWrapper::setVolume(qreal volume) {
-    mp->m_audioOutput.setVolume(volume / 100);
+    const qreal linearVolume = QtAudio::convertVolume(volume / qreal(100.0),
+        QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
+
+    mp->m_audioOutput.setVolume(linearVolume);
 }
 
 void MediaPlayerWrapper::setMuted(bool isMuted) {
@@ -153,7 +162,7 @@ void MediaPlayerWrapper::savePosition(qint64 position) {
 /**
  * We should use QMetaObject::invokeMethod and Qt::QueuedConnection to emit signals in the main thread
  * Direct access is discouraged
- * https://stackoverflow.com/questions/45696232/qmediaplayer-not-loading-media-and-not-emitting-mediastatuschanged-signals
+ * e.g. https://stackoverflow.com/questions/45696232/qmediaplayer-not-loading-media-and-not-emitting-mediastatuschanged-signals
  */
 
 void MediaPlayerWrapper::trackStateSignalChanges(QMediaPlayer::PlaybackState newState) {

@@ -1,4 +1,5 @@
 #include "trackprogresswatchdog.h"
+
 #include <QTime>
 
 TrackProgressWatchdog::TrackProgressWatchdog(QObject *parent) : QObject(parent) {}

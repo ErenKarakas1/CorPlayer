@@ -12,18 +12,6 @@
 
 #include <memory>
 
-class M3UPlaylistParser {
-public:
-    QList<QUrl> fromPlaylist(const QUrl &m3uFile, const QByteArray &content);
-    QString toPlaylist(const QUrl &m3uFile, const QList<QString> &urls);
-};
-
-class PlaylistParser {
-public:
-    QList<QUrl> fromPlaylist(const QUrl &m3uFile, const QByteArray &content);
-    QString toPlaylist(const QUrl &m3uFile, const QList<QString> &urls);
-};
-
 class TrackPlaylist;
 class TrackPlaylistProxyModelPrivate;
 

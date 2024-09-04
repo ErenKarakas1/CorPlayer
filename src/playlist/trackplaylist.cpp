@@ -1,12 +1,13 @@
-#include "trackplaylist.h"
+#include <playlist/trackplaylist.h>
+
 #include "playerutils.h"
 
 #include <QUrl>
 #include <QList>
+#include <QDebug>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QDebug>
 
 #include <algorithm>
 
@@ -360,8 +361,6 @@ void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataLi
                                                  return entryData.isValid() ? validEntries + 1 : validEntries;
                                              });
 
-    qDebug() << "TrackPlaylist::enqueueMultipleEntries: Enqueueing " << validEntries << " valid entries";
-
     if (validEntries == 0) {
         return;
     }
@@ -381,10 +380,7 @@ void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataLi
                                   ? entryData.url
                                   : entryData.musicMetadata[MetadataFields::ResourceRole].toUrl();
 
-        qDebug() << "TrackPlaylist::enqueueMultipleEntries: Enqueueing " << trackUrl << " at position " << i;
-
         if (!entryData.musicMetadata.databaseId() && trackUrl.isValid()) {
-            qDebug() << "TrackPlaylist::enqueueMultipleEntries: Enqueueing " << trackUrl << " in if statement";
             auto newEntry = TrackPlaylistEntry{trackUrl};
             newEntry.m_entryType = PlayerUtils::FileName;
 
@@ -401,22 +397,18 @@ void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataLi
                 case PlayerUtils::Track:
                 case PlayerUtils::FileName:
                     tp->m_trackFields.insert(i, static_cast<const MetadataFields::TrackMetadataField&>(data));
-                    qDebug() << "TrackPlaylist::enqueueMultipleEntries: " << data << " in switch case";
                     break;
                 default:
                     tp->m_trackFields.insert(i, {});
-                    qDebug() << "TrackPlaylist::enqueueMultipleEntries: " << data << " in default case";
             }
         }
 
         if (trackUrl.isValid()) {
-            qDebug() << "TrackPlaylist::enqueueMultipleEntries: " << trackUrl << " is valid";
             Q_EMIT addNewUrl(trackUrl, entryData.musicMetadata.hasElementType()
                                            ? entryData.musicMetadata.elementType()
                                            : PlayerUtils::FileName);
 
         } else {
-            qDebug() << "TrackPlaylist::enqueueMultipleEntries: " << trackUrl << " is invalid";
             Q_EMIT addNewEntry(entryData.musicMetadata.databaseId(), entryData.title,
                                entryData.musicMetadata.elementType());
         }
@@ -518,13 +510,10 @@ void TrackPlaylist::tracksListAdded(qulonglong newDatabaseId,
 }
 
 void TrackPlaylist::trackChanged(const TrackMetadataField &track) {
-    qDebug() << "TrackPlaylist::trackChanged" << track;
-
     for (int i = 0; i < tp->m_fields.size(); ++i) {
         auto &oneEntry = tp->m_fields[i];
 
         if (oneEntry.m_entryType != PlayerUtils::Artist && oneEntry.m_isValid) {
-            qDebug() << "TrackPlaylist::trackChanged: entered first if";
             if (oneEntry.m_trackUrl.toUrl().isValid() && track.resourceURI() != oneEntry.m_trackUrl.toUrl()) {
                 continue;
             }
@@ -536,7 +525,6 @@ void TrackPlaylist::trackChanged(const TrackMetadataField &track) {
             const auto &trackData = tp->m_trackFields[i];
 
             if (!trackData.empty()) {
-                qDebug() << "TrackPlaylist::trackChanged: if !trackData.empty()";
                 bool sameData = true;
                 for (auto oneKeyIterator = track.constKeyValueBegin(); oneKeyIterator != track.constKeyValueEnd(); ++
                      oneKeyIterator) {
@@ -552,14 +540,11 @@ void TrackPlaylist::trackChanged(const TrackMetadataField &track) {
 
             tp->m_trackFields[i] = track;
 
-            qDebug() << "TrackPlaylist::trackChanged: if dataChanged" << i << track;
-
             Q_EMIT dataChanged(index(i, 0), index(i, 0), {});
             continue;
         }
 
         if (oneEntry.m_entryType != PlayerUtils::Artist && !oneEntry.m_isValid && !oneEntry.m_trackUrl.isValid()) {
-            qDebug() << "TrackPlaylist::trackChanged: entered else if";
             if (track.find(TrackMetadataField::key_type::TitleRole) != track.end() &&
                 track.title() != oneEntry.m_title) {
                 continue;
@@ -584,25 +569,19 @@ void TrackPlaylist::trackChanged(const TrackMetadataField &track) {
             oneEntry.m_id = track.databaseId();
             oneEntry.m_isValid = true;
 
-            qDebug() << "TrackPlaylist::trackChanged: else if dataChanged" << i << track;
-
             Q_EMIT dataChanged(index(i, 0), index(i, 0), {});
 
             break;
         }
 
         if (oneEntry.m_entryType != PlayerUtils::Artist && !oneEntry.m_isValid && oneEntry.m_trackUrl.isValid()) {
-            qDebug() << "TrackPlaylist::trackChanged: entered else if2";
             if (track.resourceURI() != oneEntry.m_trackUrl) {
-                qDebug() << "TrackPlaylist::trackChanged: in continue" << track.resourceURI() << "vs" << oneEntry.m_trackUrl;
                 continue;
             }
 
             tp->m_trackFields[i] = track;
             oneEntry.m_id = track.databaseId();
             oneEntry.m_isValid = true;
-
-            qDebug() << "TrackPlaylist::trackChanged: else if2 dataChanged" << i << track;
 
             Q_EMIT dataChanged(index(i, 0), index(i, 0), {});
             break;

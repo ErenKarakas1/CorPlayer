@@ -1,12 +1,12 @@
 #ifndef TRACKMETADATAMANAGER_H
 #define TRACKMETADATAMANAGER_H
 
+#include "playerutils.h"
+
 #include <QUrl>
 #include <QObject>
 #include <QQmlEngine>
 #include <QPersistentModelIndex>
-
-#include "playerutils.h"
 
 class TrackMetadataManager : public QObject {
     Q_OBJECT
