@@ -12,6 +12,7 @@ ApplicationWindow {
     id: mainWindow
 
     readonly property alias fileDialog: fileDialog
+    readonly property alias controlBar: controlBarLoader.item
 
     function handleDrop(drop) {
         console.log("test");
@@ -26,6 +27,7 @@ ApplicationWindow {
 
     Material.theme: Material.System
     height: 720
+    width: 1280
     minimumHeight: 540
     minimumWidth: 960
 
@@ -33,10 +35,26 @@ ApplicationWindow {
 
     title: "CorPlayer"
     visible: true
-    width: 1280
+
+    Connections {
+        target: CorPlayer.mediaPlayer
+        function onVolumeChanged() {
+            if (controlBar !== null) {
+                controlBar.volumeControl.volume = CorPlayer.mediaPlayer.volume
+            }
+        }
+
+        function onMutedChanged() {
+            if (controlBar !== null) {
+                controlBar.volumeControl.muted = CorPlayer.mediaPlayer.isMuted
+            }
+        }
+    }
 
     Component.onCompleted: {
         CorPlayer.initialize();
+        CorPlayer.mediaPlayer.isMuted = Qt.binding(() => controlBar.volumeControl.muted);
+        CorPlayer.mediaPlayer.volume = Qt.binding(() => controlBar.volumeControl.volume);
     }
 
     DropArea {

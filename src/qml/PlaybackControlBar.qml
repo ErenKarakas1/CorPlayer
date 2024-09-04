@@ -13,6 +13,9 @@ FocusScope {
     anchors.leftMargin: 15
     anchors.rightMargin: 15
 
+    property bool muted: false
+    property alias volumeControl: volumeControl
+
     RowLayout {
         id: playbackControlBarLayout
         anchors.fill: parent
@@ -23,7 +26,8 @@ FocusScope {
 
             Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
             Layout.fillHeight: true
-            Layout.preferredWidth: parent.width * 0.1
+            Layout.minimumWidth: parent.width * 0.1
+            Layout.maximumWidth: parent.width * 0.1
         }
 
         PlaybackControl {
@@ -33,7 +37,6 @@ FocusScope {
             height: parent.height
             width: parent.width
 
-
             Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             Layout.fillHeight: true
             Layout.preferredWidth: parent.width * 0.7
@@ -41,8 +44,10 @@ FocusScope {
         }
 
         VolumeControl {
-
             id: volumeControl
+
+            muted: playbackControlItem.muted
+
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
             Layout.preferredWidth: parent.width * 0.1

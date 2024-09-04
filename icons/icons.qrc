@@ -4,7 +4,10 @@
         <file alias="fa_forward">forward-step-solid.svg</file>
         <file alias="fa_pause">pause-solid.svg</file>
         <file alias="fa_play">play-solid.svg</file>
-        <file alias="fa_repeat">repeat-solid.svg</file>
+        <file alias="fa_no_repeat">repeat-solid.svg</file>
+        <file alias="fa_playlist_repeat">repeat-playlist-solid.svg</file>
+        <file alias="fa_track_repeat">repeat-track-solid.svg</file>
+        <file alias="fa_no_shuffle">arrow-right-double-solid.svg</file>
         <file alias="fa_shuffle">shuffle-solid.svg</file>
         <file alias="fa_volume_high">volume-high-solid.svg</file>
         <file alias="fa_volume_low">volume-low-solid.svg</file>

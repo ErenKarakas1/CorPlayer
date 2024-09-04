@@ -3,34 +3,37 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import CorPlayer
 
-RowLayout {
-    id: root
-    anchors.fill: parent
-    spacing: 10
+Item {
+    id: trackInfo
 
+    property string title: CorPlayer.metadataManager.title
+    property string artist: CorPlayer.metadataManager.artist
 
-    Rectangle { //wip
-        id: albumArt
-        width: 50
-        height: 50
-        color: "red"
-    }
+    RowLayout {
+        spacing: 10
 
-    ColumnLayout { //wip
-        id: trackInfoLayout
-        spacing: 5
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-        Text {
-            id: trackTitle
-            text: "Track Title"
-            font.bold: true
+        Rectangle { //wip
+            id: albumArt
+            width: 50
+            height: 50
+            color: "red"
         }
 
-        Text {
-            id: trackArtist
-            text: "Track Artist"
+        ColumnLayout { //wip
+            id: trackInfoLayout
+            spacing: 5
+            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+
+            Text {
+                id: trackTitle
+                text: title
+                font.bold: true
+            }
+
+            Text {
+                id: trackArtist
+                text: artist
+            }
         }
     }
-
 }
