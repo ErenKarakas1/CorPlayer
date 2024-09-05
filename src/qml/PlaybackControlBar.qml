@@ -1,4 +1,5 @@
 import QtQuick
+import QtCore
 import QtQuick.Controls
 import QtQuick.Layouts
 
@@ -13,7 +14,6 @@ FocusScope {
     anchors.leftMargin: 15
     anchors.rightMargin: 15
 
-    property bool muted: false
     property alias volumeControl: volumeControl
 
     RowLayout {
@@ -45,8 +45,6 @@ FocusScope {
 
         VolumeControl {
             id: volumeControl
-
-            muted: playbackControlItem.muted
 
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter

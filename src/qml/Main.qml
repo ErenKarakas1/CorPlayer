@@ -11,8 +11,20 @@ import Qt.labs.platform
 ApplicationWindow {
     id: mainWindow
 
+    Settings {
+        id: settings
+        property int volume;
+        property bool muted;
+        property var trackState;
+        property bool maximized;
+        property alias height: mainWindow.height
+        property alias width: mainWindow.width
+    }
+
     readonly property alias fileDialog: fileDialog
     readonly property alias controlBar: controlBarLoader.item
+
+    onClosing: settings.maximized = mainWindow.visibility === Window.Maximized
 
     function handleDrop(drop) {
         console.log("test");
@@ -30,11 +42,14 @@ ApplicationWindow {
     width: 1280
     minimumHeight: 540
     minimumWidth: 960
+    visibility: Window.Windowed
 
     // TODO: Decide on a minimum size for the window
 
     title: "CorPlayer"
     visible: true
+
+
 
     Connections {
         target: CorPlayer.mediaPlayer
@@ -55,6 +70,17 @@ ApplicationWindow {
         CorPlayer.initialize();
         CorPlayer.mediaPlayer.isMuted = Qt.binding(() => controlBar.volumeControl.muted);
         CorPlayer.mediaPlayer.volume = Qt.binding(() => controlBar.volumeControl.volume);
+        CorPlayer.trackManager.persistentState = settings.trackState;
+        if (settings.maximized) {
+            mainWindow.showMaximized()
+            settings.height = 720;
+            settings.width = 1280;
+        }
+    }
+
+    Component.onDestruction: {
+        settings.trackState = CorPlayer.trackManager.persistentState;
+        mainWindow.closing();
     }
 
     DropArea {
@@ -129,6 +155,16 @@ ApplicationWindow {
                     id: controlBar
 
                     focus: true
+
+                    Component.onCompleted: {
+                        volumeControl.volume = settings.volume;
+                        volumeControl.muted = settings.muted;
+                    }
+
+                    Component.onDestruction: {
+                        settings.volume = controlBar.volumeControl.volume;
+                        settings.muted = controlBar.volumeControl.muted;
+                    }
                 }
             }
         }
