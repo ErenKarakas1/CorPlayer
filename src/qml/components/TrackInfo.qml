@@ -28,11 +28,13 @@ Item {
                 id: trackTitle
                 text: title
                 font.bold: true
+                color: "white"
             }
 
             Text {
                 id: trackArtist
                 text: artist
+                color: "white"
             }
         }
     }

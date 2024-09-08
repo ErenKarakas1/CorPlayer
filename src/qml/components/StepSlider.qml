@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 
 Slider {
-    id: root
+    id: slider
 
     property real keyStepSize: stepSize
     property real wheelStepSize: stepSize
@@ -23,6 +23,38 @@ Slider {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.NoButton
-        onWheel: wheel => root.__move(root.__wheelStepSize * (wheel.angleDelta.y > 0 ? 1 : -1))
+        onWheel: wheel => slider.__move(slider.__wheelStepSize * (wheel.angleDelta.y > 0 ? 1 : -1))
+    }
+
+    background: Rectangle {
+        x: slider.leftPadding
+        anchors.verticalCenter: parent.verticalCenter
+
+        implicitWidth: parent.width
+        implicitHeight: 4
+        width: slider.availableWidth
+        height: implicitHeight
+
+        radius: 5
+        color: "gray"
+
+        Rectangle {
+            width: slider.visualPosition * parent.width
+            height: parent.height
+
+            radius: 5
+            color: "white"
+        }
+    }
+
+    handle: Rectangle {
+        x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
+        anchors.verticalCenter: parent.verticalCenter
+
+        width: 16
+        height: 16
+
+        radius: width / 2
+        color: "white"
     }
 }

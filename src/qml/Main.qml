@@ -24,8 +24,6 @@ ApplicationWindow {
     readonly property alias fileDialog: fileDialog
     readonly property alias controlBar: controlBarLoader.item
 
-    onClosing: settings.maximized = mainWindow.visibility === Window.Maximized
-
     function handleDrop(drop) {
         console.log("test");
         if (drop.hasUrls) {
@@ -38,18 +36,18 @@ ApplicationWindow {
     }
 
     Material.theme: Material.System
-    height: 720
-    width: 1280
+    Material.accent: "#0582CA"
+
+    height: settings.height
+    width: settings.width
+
     minimumHeight: 540
     minimumWidth: 960
-    visibility: Window.Windowed
 
     // TODO: Decide on a minimum size for the window
 
     title: "CorPlayer"
     visible: true
-
-
 
     Connections {
         target: CorPlayer.mediaPlayer
@@ -68,19 +66,30 @@ ApplicationWindow {
 
     Component.onCompleted: {
         CorPlayer.initialize();
-        CorPlayer.mediaPlayer.isMuted = Qt.binding(() => controlBar.volumeControl.muted);
-        CorPlayer.mediaPlayer.volume = Qt.binding(() => controlBar.volumeControl.volume);
+
         CorPlayer.trackManager.persistentState = settings.trackState;
         if (settings.maximized) {
             mainWindow.showMaximized()
-            settings.height = 720;
-            settings.width = 1280;
+        }
+
+        controlBar.volumeControl.volume = settings.volume;
+        controlBar.volumeControl.muted = settings.muted;
+        CorPlayer.mediaPlayer.isMuted = Qt.binding(() => controlBar.volumeControl.muted);
+        CorPlayer.mediaPlayer.volume = Qt.binding(() => controlBar.volumeControl.volume);
+    }
+
+    onClosing: {
+        if (mainWindow.visibility === Window.Maximized) {
+            settings.maximized = true;
+        } else {
+            settings.maximized = false;
+            settings.height = mainWindow.height;
+            settings.width = mainWindow.width;
         }
     }
 
     Component.onDestruction: {
         settings.trackState = CorPlayer.trackManager.persistentState;
-        mainWindow.closing();
     }
 
     DropArea {
@@ -115,35 +124,32 @@ ApplicationWindow {
         id: mainView
 
         anchors.fill: parent
+        color: "black"
 
         ColumnLayout {
             anchors.fill: parent
             spacing: 0
 
-            Rectangle {
-                Layout.fillWidth: true
+            RowLayout {
+                Layout.preferredWidth: parent.width
+                Layout.alignment: Qt.AlignHCenter
                 Layout.preferredHeight: parent.height * 0.9
-                color: "black"
 
-                RowLayout {
-                    Layout.preferredWidth: parent.width
-                    Layout.alignment: Qt.AlignHCenter
+                Button {
+                    Layout.alignment: Qt.AlignLeft
+                    text: "Open Playlist"
 
-                    Button {
-                        Layout.alignment: Qt.AlignLeft
-                        text: "Open Playlist"
+                    onClicked: fileDialog.loadPlaylist()
+                }
 
-                        onClicked: fileDialog.loadPlaylist()
-                    }
+                Button {
+                    Layout.alignment: Qt.AlignRight
+                    text: "Save Playlist"
 
-                    Button {
-                        Layout.alignment: Qt.AlignRight
-                        text: "Save Playlist"
-
-                        onClicked: fileDialog.savePlaylist()
-                    }
+                    onClicked: fileDialog.savePlaylist()
                 }
             }
+
             Loader {
                 id: controlBarLoader
 
@@ -155,11 +161,6 @@ ApplicationWindow {
                     id: controlBar
 
                     focus: true
-
-                    Component.onCompleted: {
-                        volumeControl.volume = settings.volume;
-                        volumeControl.muted = settings.muted;
-                    }
 
                     Component.onDestruction: {
                         settings.volume = controlBar.volumeControl.volume;

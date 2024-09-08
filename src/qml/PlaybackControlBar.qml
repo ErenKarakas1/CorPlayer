@@ -9,46 +9,44 @@ FocusScope {
     id: playbackControlBar
 
     anchors.fill: parent
-    anchors.topMargin: 10
-    anchors.bottomMargin: 5
-    anchors.leftMargin: 15
-    anchors.rightMargin: 15
 
     property alias volumeControl: volumeControl
 
     RowLayout {
         id: playbackControlBarLayout
         anchors.fill: parent
-        spacing: 10
+        anchors {
+            rightMargin: 40
+            leftMargin: 20
+        }
 
         TrackInfo {
             id: trackInfo
 
             Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+            Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumWidth: parent.width * 0.1
-            Layout.maximumWidth: parent.width * 0.1
+            Layout.preferredWidth: 1
         }
 
         PlaybackControl {
             id: playbackControlItem
 
             focus: true
-            height: parent.height
-            width: parent.width
 
             Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+            Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredWidth: parent.width * 0.7
-
+            Layout.preferredWidth: 6
         }
 
         VolumeControl {
             id: volumeControl
 
-            Layout.fillHeight: true
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-            Layout.preferredWidth: parent.width * 0.1
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
         }
     }
 }

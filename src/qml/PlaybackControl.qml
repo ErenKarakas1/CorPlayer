@@ -41,13 +41,14 @@ FocusScope {
     ColumnLayout {
         id: playbackControlLayout
         anchors.fill: parent
-        spacing: 10
+        anchors.verticalCenter: parent.verticalCenter
 
         DurationSlider {
             id: durationSlider
 
-            Layout.maximumWidth: parent.width * 0.65
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+            Layout.preferredHeight: 1
+            Layout.maximumWidth: parent.width * 0.7
 
             duration: playbackControl.duration
             playEnabled: playbackControl.playEnabled
@@ -62,6 +63,7 @@ FocusScope {
 
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+            Layout.preferredHeight: 4
 
             ToolButton {
                 id: shuffleButton

@@ -2,32 +2,31 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Item {
+RowLayout {
     id: volumeControl
 
     property bool muted
     property alias volume: volumeSlider.value
 
-    RowLayout {
-        spacing: 0
+    ToolButton {
+        id: muteButton
 
-        ToolButton {
-            id: muteButton
-            Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
 
-            icon.name: volumeControl.muted ? "qrc:/icons/fa_volume_off" : "qrc:/icons/fa_volume_high"
-            onClicked: volumeControl.muted = !volumeControl.muted
-        }
+        icon.name: volumeControl.muted ? "qrc:/icons/fa_volume_off" : "qrc:/icons/fa_volume_high"
+        onClicked: volumeControl.muted = !volumeControl.muted
+    }
 
-        StepSlider {
-            id: volumeSlider
+    StepSlider {
+        id: volumeSlider
 
-            from: 0
-            to: 100
+        from: 0
+        to: 100
 
-            keyStepSize: 1
-            wheelStepSize: 10
-            enabled: !volumeControl.muted
-        }
+        Layout.fillWidth: true
+
+        keyStepSize: 1
+        wheelStepSize: 10
+        enabled: !volumeControl.muted
     }
 }
