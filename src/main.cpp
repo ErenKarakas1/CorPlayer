@@ -1,11 +1,11 @@
 #include "corplayer.h"
 
-#include <QDir>
 #include <QApplication>
-#include <QQmlApplicationEngine>
 #include <QCoreApplication>
-#include <QQmlContext>
+#include <QDir>
 #include <QFontDatabase>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -18,10 +18,10 @@ int main(int argc, char *argv[]) {
 
     engine.rootContext()->setContextProperty(qmlUrl, &corPlayer);
     QObject::connect(
-        &engine,
-        &QQmlApplicationEngine::objectCreationFailed,
-        &app,
-        []() { QCoreApplication::exit(-1); },
+        &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
+        []() {
+            QCoreApplication::exit(-1);
+        },
         Qt::QueuedConnection);
 
     engine.loadFromModule(qmlUrl, "Main");

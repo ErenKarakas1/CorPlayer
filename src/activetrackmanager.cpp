@@ -2,8 +2,8 @@
 
 #include "playlist/trackplaylist.h"
 
-#include <QTimer>
 #include <QDateTime>
+#include <QTimer>
 
 ActiveTrackManager::ActiveTrackManager(QObject *parent) : QObject(parent) {}
 
@@ -11,7 +11,7 @@ QPersistentModelIndex ActiveTrackManager::currentTrack() const {
     return m_currentTrack;
 }
 
-QAbstractItemModel* ActiveTrackManager::playlistModel() const {
+QAbstractItemModel *ActiveTrackManager::playlistModel() const {
     return m_playlistModel;
 }
 
@@ -136,9 +136,7 @@ void ActiveTrackManager::restoreForUndoClearPlaylist() {
 }
 
 void ActiveTrackManager::setPlaylistModel(QAbstractItemModel *newPlaylistModel) {
-    if (m_playlistModel == newPlaylistModel) {
-        return;
-    }
+    if (m_playlistModel == newPlaylistModel) return;
 
     if (m_playlistModel) {
         disconnect(m_playlistModel, &QAbstractItemModel::dataChanged, this, &ActiveTrackManager::tracksDataChanged);
@@ -154,9 +152,7 @@ void ActiveTrackManager::setPlaylistModel(QAbstractItemModel *newPlaylistModel) 
 }
 
 void ActiveTrackManager::setTitleRole(int newTitleRole) {
-    if (m_titleRole == newTitleRole) {
-        return;
-    }
+    if (m_titleRole == newTitleRole) return;
 
     m_titleRole = newTitleRole;
     Q_EMIT titleRoleChanged();
@@ -167,9 +163,7 @@ void ActiveTrackManager::setTitleRole(int newTitleRole) {
 }
 
 void ActiveTrackManager::setArtistRole(int newArtistRole) {
-    if (m_artistRole == newArtistRole) {
-        return;
-    }
+    if (m_artistRole == newArtistRole) return;
 
     m_artistRole = newArtistRole;
     Q_EMIT artistRoleChanged();
@@ -180,9 +174,7 @@ void ActiveTrackManager::setArtistRole(int newArtistRole) {
 }
 
 void ActiveTrackManager::setAlbumRole(int newAlbumRole) {
-    if (m_albumRole == newAlbumRole) {
-        return;
-    }
+    if (m_albumRole == newAlbumRole) return;
 
     m_albumRole = newAlbumRole;
     Q_EMIT albumRoleChanged();
@@ -201,18 +193,14 @@ void ActiveTrackManager::setUrlRole(int newUrlRole) {
 }
 
 void ActiveTrackManager::setIsPlayingRole(int newIsPlayingRole) {
-    if (m_isPlayingRole == newIsPlayingRole) {
-        return;
-    }
+    if (m_isPlayingRole == newIsPlayingRole) return;
 
     m_isPlayingRole = newIsPlayingRole;
     Q_EMIT isPlayingRoleChanged();
 }
 
 void ActiveTrackManager::setTrackStatus(QMediaPlayer::MediaStatus newTrackStatus) {
-    if (m_trackStatus == newTrackStatus) {
-        return;
-    }
+    if (m_trackStatus == newTrackStatus) return;
 
     m_trackStatus = newTrackStatus;
     Q_EMIT trackStatusChanged();
@@ -237,9 +225,7 @@ void ActiveTrackManager::setTrackStatus(QMediaPlayer::MediaStatus newTrackStatus
 }
 
 void ActiveTrackManager::setTrackPlaybackState(QMediaPlayer::PlaybackState newTrackPlaybackState) {
-    if (m_trackPlaybackState == newTrackPlaybackState) {
-        return;
-    }
+    if (m_trackPlaybackState == newTrackPlaybackState) return;
 
     m_trackPlaybackState = newTrackPlaybackState;
     Q_EMIT trackPlaybackStateChanged();
@@ -269,8 +255,7 @@ void ActiveTrackManager::setTrackPlaybackState(QMediaPlayer::PlaybackState newTr
                 }
                 break;
         }
-    }
-    else {
+    } else {
         switch (m_trackPlaybackState) {
             case QMediaPlayer::StoppedState:
                 notifyTrackSourceProperty();
@@ -295,9 +280,7 @@ void ActiveTrackManager::setTrackPlaybackState(QMediaPlayer::PlaybackState newTr
 }
 
 void ActiveTrackManager::setTrackError(QMediaPlayer::Error newTrackError) {
-    if (m_trackError == newTrackError) {
-        return;
-    }
+    if (m_trackError == newTrackError) return;
 
     m_trackError = newTrackError;
     Q_EMIT trackErrorChanged();
@@ -309,8 +292,7 @@ void ActiveTrackManager::setTrackError(QMediaPlayer::Error newTrackError) {
 
         if (currentSource.isLocalFile()) {
             Q_EMIT displayTrackError(currentSource.toLocalFile());
-        }
-        else {
+        } else {
             Q_EMIT displayTrackError(currentSource.toString());
         }
     }
@@ -331,7 +313,6 @@ void ActiveTrackManager::ensurePlay() {
 }
 
 void ActiveTrackManager::requestPlay() {
-    qDebug() << "ActiveTrackManager::requestPlay()";
     m_isPlaying = true;
 }
 
@@ -342,7 +323,6 @@ void ActiveTrackManager::stop() {
 
 void ActiveTrackManager::playPause() {
     m_isPlaying = !m_isPlaying;
-    qDebug() << "ActiveTrackManager::playPause()" << m_trackStatus << m_isPlaying;
 
     switch (m_trackStatus) {
         case QMediaPlayer::LoadedMedia:
@@ -351,18 +331,14 @@ void ActiveTrackManager::playPause() {
         case QMediaPlayer::LoadingMedia:
             if (m_isPlaying) {
                 triggerPlay();
-                qDebug() << "ActiveTrackManager::playPause() - triggerPlay()";
-            }
-            else {
+            } else {
                 triggerPause();
-                qDebug() << "ActiveTrackManager::playPause() - triggerPause()";
             }
             break;
         case QMediaPlayer::EndOfMedia:
             if (m_trackPlaybackState == QMediaPlayer::PlayingState && !m_isPlaying) {
                 triggerPause();
-            }
-            else if (m_trackPlaybackState == QMediaPlayer::PausedState && m_isPlaying) {
+            } else if (m_trackPlaybackState == QMediaPlayer::PausedState && m_isPlaying) {
                 triggerPlay();
             }
             break;
@@ -374,30 +350,25 @@ void ActiveTrackManager::playPause() {
 }
 
 void ActiveTrackManager::setTrackDuration(qint64 newTrackDuration) {
-    if (m_trackDuration == newTrackDuration) {
-        return;
-    }
+    if (m_trackDuration == newTrackDuration) return;
 
     m_trackDuration = newTrackDuration;
     Q_EMIT trackDurationChanged();
 }
 
 void ActiveTrackManager::setTrackIsSeekable(bool newTrackIsSeekable) {
-    if (m_trackIsSeekable == newTrackIsSeekable) {
-        return;
-    }
+    if (m_trackIsSeekable == newTrackIsSeekable) return;
 
     m_trackIsSeekable = newTrackIsSeekable;
     Q_EMIT trackIsSeekableChanged();
 }
 
 void ActiveTrackManager::setTrackPosition(qint64 newTrackPosition) {
-    if (m_trackPosition == newTrackPosition) {
-        return;
-    }
+    if (m_trackPosition == newTrackPosition) return;
 
     m_trackPosition = newTrackPosition;
     Q_EMIT trackPositionChanged();
+
     QTimer::singleShot(0, this, [this]() {
         Q_EMIT trackControlPositionChanged();
     });
@@ -408,12 +379,9 @@ void ActiveTrackManager::setTrackControlPosition(int newTrackControlPosition) {
 }
 
 void ActiveTrackManager::setPersistentState(const QVariantMap &newPersistentState) {
-    if (m_persistentState == newPersistentState) {
-        return;
-    }
+    if (m_persistentState == newPersistentState) return;
 
     m_persistentState = newPersistentState;
-
     Q_EMIT persistentStateChanged();
 
     if (m_currentTrack.isValid()) {
@@ -430,26 +398,16 @@ void ActiveTrackManager::playlistFinished() {
 }
 
 void ActiveTrackManager::tracksDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
-                                          const QList<int> &roles) {
-
-    if (!m_currentTrack.isValid()) {
-        return;
-    }
-
-    if (m_currentTrack.row() > bottomRight.row() || m_currentTrack.row() < topLeft.row()) {
-        return;
-    }
-
-    if (m_currentTrack.column() > bottomRight.column() || m_currentTrack.column() < topLeft.column()) {
-        return;
-    }
+                                           const QList<int> &roles) {
+    if (!m_currentTrack.isValid()) return;
+    if (m_currentTrack.row() > bottomRight.row() || m_currentTrack.row() < topLeft.row()) return;
+    if (m_currentTrack.column() > bottomRight.column() || m_currentTrack.column() < topLeft.column()) return;
 
     if (roles.isEmpty()) {
         notifyTrackSourceProperty();
         restorePreviousState();
-    }
-    else {
-        for (auto oneRole : roles) {
+    } else {
+        for (const auto oneRole : roles) {
             if (oneRole == m_urlRole) {
                 notifyTrackSourceProperty();
                 restorePreviousState();
@@ -460,9 +418,9 @@ void ActiveTrackManager::tracksDataChanged(const QModelIndex &topLeft, const QMo
 
 void ActiveTrackManager::notifyTrackSourceProperty() {
     auto newUrlValue = m_currentTrack.data(m_urlRole);
+
     if (m_skippingCurrentTrack || m_previousTrackSource != newUrlValue) {
         Q_EMIT trackSourceChanged(m_currentTrack.data(m_urlRole).toUrl());
-
         m_previousTrackSource = newUrlValue;
     }
 }
@@ -492,9 +450,7 @@ void ActiveTrackManager::triggerSkipNextTrack(PlayerUtils::SkipReason reason /*=
 }
 
 void ActiveTrackManager::restorePreviousState() {
-    if (m_persistentState.isEmpty()) {
-        return;
-    }
+    if (m_persistentState.isEmpty()) return;
 
     auto itTitle = m_persistentState.find(QStringLiteral("activeTrackTitle"));
     auto itArtistName = m_persistentState.find(QStringLiteral("activeTrackArtist"));
@@ -508,18 +464,14 @@ void ActiveTrackManager::restorePreviousState() {
     if (*itTitle != m_currentTrack.data(m_titleRole) ||
         (itArtistName->isValid() && *itArtistName != m_currentTrack.data(m_artistRole)) ||
         (itAlbumName->isValid() && *itAlbumName != m_currentTrack.data(m_albumRole))) {
-        if (m_currentTrack.isValid() && m_currentTrack.data(m_titleRole).isValid() && m_currentTrack.data(m_artistRole).
-            isValid() &&
-            m_currentTrack.data(m_albumRole).isValid()) {
+        if (m_currentTrack.isValid() && m_currentTrack.data(m_titleRole).isValid() &&
+            m_currentTrack.data(m_artistRole).isValid() && m_currentTrack.data(m_albumRole).isValid()) {
             m_persistentState.clear();
         }
-
         return;
     }
 
-    if (!m_currentTrack.data(m_urlRole).toUrl().isValid()) {
-        return;
-    }
+    if (!m_currentTrack.data(m_urlRole).toUrl().isValid()) return;
 
     auto playerPosition = m_persistentState.find(QStringLiteral("trackPosition"));
     if (playerPosition != m_persistentState.end()) {

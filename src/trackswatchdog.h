@@ -28,4 +28,4 @@ private:
     std::unique_ptr<TracksWatchdogPrivate> tw;
 };
 
-#endif //TRACKSWATCHDOG_H
+#endif // TRACKSWATCHDOG_H

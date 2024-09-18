@@ -1,14 +1,14 @@
 #ifndef TRACKPLAYLISTPROXYMODEL_H
 #define TRACKPLAYLISTPROXYMODEL_H
 
-#include "playerutils.h"
 #include "metadatafields.h"
+#include "playerutils.h"
 
-#include <QMimeType>
+#include <QAbstractProxyModel>
 #include <QFileInfo>
 #include <QMediaPlayer>
+#include <QMimeType>
 #include <QQmlEngine>
-#include <QAbstractProxyModel>
 
 #include <memory>
 
@@ -36,63 +36,23 @@ public:
     Q_ENUM(Shuffle);
 
 private:
-    Q_PROPERTY(QVariantMap persistentState
-        READ persistentState
-        WRITE setPersistentState
-        NOTIFY persistentStateChanged)
-
-    Q_PROPERTY(QPersistentModelIndex previousTrack
-        READ previousTrack
-        NOTIFY previousTrackChanged)
-
-    Q_PROPERTY(QPersistentModelIndex currentTrack
-        READ currentTrack
-        NOTIFY currentTrackChanged)
-
-    Q_PROPERTY(QPersistentModelIndex nextTrack
-        READ nextTrack
-        NOTIFY nextTrackChanged)
-
-    Q_PROPERTY(Repeat repeatMode
-        READ repeatMode
-        WRITE setRepeatMode
-        NOTIFY repeatModeChanged)
-
-    Q_PROPERTY(Shuffle shuffleMode
-        READ shuffleMode
-        WRITE setShuffleMode
-        NOTIFY shuffleModeChanged)
+    Q_PROPERTY(QVariantMap persistentState READ persistentState WRITE setPersistentState NOTIFY persistentStateChanged)
+    Q_PROPERTY(QPersistentModelIndex previousTrack READ previousTrack NOTIFY previousTrackChanged)
+    Q_PROPERTY(QPersistentModelIndex currentTrack READ currentTrack NOTIFY currentTrackChanged)
+    Q_PROPERTY(QPersistentModelIndex nextTrack READ nextTrack NOTIFY nextTrackChanged)
+    Q_PROPERTY(Repeat repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged)
+    Q_PROPERTY(Shuffle shuffleMode READ shuffleMode WRITE setShuffleMode NOTIFY shuffleModeChanged)
 
     // in milliseconds
-    Q_PROPERTY(int totalTracksDuration
-        READ totalTracksDuration
-        NOTIFY totalTracksDurationChanged)
+    Q_PROPERTY(int totalTracksDuration READ totalTracksDuration NOTIFY totalTracksDurationChanged)
 
     // in milliseconds
-    Q_PROPERTY(int remainingTracksDuration
-        READ remainingTracksDuration
-        NOTIFY remainingTracksDurationChanged)
-
-    Q_PROPERTY(int remainingTracks
-        READ remainingTracks
-        NOTIFY remainingTracksChanged)
-
-    Q_PROPERTY(int currentTrackRow
-        READ currentTrackRow
-        NOTIFY currentTrackRowChanged)
-
-    Q_PROPERTY(int tracksCount
-        READ tracksCount
-        NOTIFY tracksCountChanged)
-
-    Q_PROPERTY(bool partiallyLoaded
-        READ partiallyLoaded
-        NOTIFY partiallyLoadedChanged
-        RESET resetPartiallyLoaded)
-
-    Q_PROPERTY(bool canOpenLoadedPlaylist
-        READ canOpenLoadedPlaylist
-        NOTIFY canOpenLoadedPlaylistChanged)
+    Q_PROPERTY(int remainingTracksDuration READ remainingTracksDuration NOTIFY remainingTracksDurationChanged)
+    Q_PROPERTY(int remainingTracks READ remainingTracks NOTIFY remainingTracksChanged)
+    Q_PROPERTY(int currentTrackRow READ currentTrackRow NOTIFY currentTrackRowChanged)
+    Q_PROPERTY(int tracksCount READ tracksCount NOTIFY tracksCountChanged)
+    Q_PROPERTY(bool partiallyLoaded READ partiallyLoaded NOTIFY partiallyLoadedChanged RESET resetPartiallyLoaded)
+    Q_PROPERTY(bool canOpenLoadedPlaylist READ canOpenLoadedPlaylist NOTIFY canOpenLoadedPlaylistChanged)
 
 public:
     explicit TrackPlaylistProxyModel(QObject *parent = nullptr);
@@ -102,8 +62,8 @@ public:
     [[nodiscard]] QItemSelection mapSelectionFromSource(const QItemSelection &sourceSelection) const override;
     [[nodiscard]] QItemSelection mapSelectionToSource(const QItemSelection &proxySelection) const override;
     [[nodiscard]] QModelIndex mapToSource(const QModelIndex &proxyIndex) const override;
-    [[nodiscard]] int mapRowFromSource(const int sourceRow) const;
-    [[nodiscard]] int mapRowToSource(const int proxyRow) const;
+    [[nodiscard]] int mapRowFromSource(int sourceRow) const;
+    [[nodiscard]] int mapRowToSource(int proxyRow) const;
     [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
     [[nodiscard]] QModelIndex parent(const QModelIndex &child) const override;
@@ -125,40 +85,35 @@ public:
     int m_seekToBeginningDelay = 2000;
 
 public Q_SLOTS:
-    void enqueue(const QUrl &entryUrl,
-                 PlayerUtils::PlaylistEnqueueMode enqueueMode,
+    void enqueue(const QUrl &entryUrl, PlayerUtils::PlaylistEnqueueMode enqueueMode,
                  PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
 
-    void enqueue(const MetadataFields::MusicMetadataField &newEntry,
-                 const QString &newEntryTitle,
-                 PlayerUtils::PlaylistEnqueueMode enqueueMode,
-                 PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
+    void enqueue(const MetadataFields::MusicMetadataField &newEntry, const QString &newEntryTitle,
+                 PlayerUtils::PlaylistEnqueueMode enqueueMode, PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
 
-    void enqueue(const MetadataFields::EntryMetadataList &newEntries,
-                 PlayerUtils::PlaylistEnqueueMode enqueueMode,
+    void enqueue(const MetadataFields::EntryMetadataList &newEntries, PlayerUtils::PlaylistEnqueueMode enqueueMode,
                  PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
 
     void setRepeatMode(TrackPlaylistProxyModel::Repeat newMode);
     void setShuffleMode(TrackPlaylistProxyModel::Shuffle value);
-    void trackInError(const QUrl &sourceInError, QMediaPlayer::Error playerError);
+    void trackInError(const QUrl &sourceInError, QMediaPlayer::Error playerError) const;
     void skipNextTrack(PlayerUtils::SkipReason reason = PlayerUtils::SkipReason::Automatic);
     void skipPreviousTrack(qint64 position);
     void switchTo(int row);
-    void removeSelection(QList<int> selection);
-    void removeRow(int row);
+    void removeSelection(QList<int> selection) const;
+    void removeRow(int row) const;
     void moveRow(int from, int to);
     void clearPlaylist();
     void undoClearPlaylist();
-    bool savePlaylist(const QUrl &fileName);
+    [[nodiscard]] bool savePlaylist(const QUrl &fileName) const;
     void loadPlaylist(const QUrl &fileName);
 
-    void loadPlaylist(const QUrl &fileName,
-                      PlayerUtils::PlaylistEnqueueMode enqueueMode,
+    void loadPlaylist(const QUrl &fileName, PlayerUtils::PlaylistEnqueueMode enqueueMode,
                       PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
 
     void setPersistentState(const QVariantMap &persistentState);
     void resetPartiallyLoaded();
-    int indexForTrackUrl(const QUrl &url);
+    [[nodiscard]] int indexForTrackUrl(const QUrl &url) const;
     void switchToTrackUrl(const QUrl &url, PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
 
 Q_SIGNALS:
@@ -195,11 +150,10 @@ private Q_SLOTS:
     void sourceRowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
     void sourceRowsRemoved(const QModelIndex &parent, int start, int end);
 
-    void sourceRowsAboutToBeMoved(const QModelIndex &parent, int start, int end,
-                                  const QModelIndex &destParent, int destRow);
+    void sourceRowsAboutToBeMoved(const QModelIndex &parent, int start, int end, const QModelIndex &destParent,
+                                  int destRow);
 
-    void sourceRowsMoved(const QModelIndex &parent, int start, int end,
-                         const QModelIndex &destParent, int destRow);
+    void sourceRowsMoved(const QModelIndex &parent, int start, int end, const QModelIndex &destParent, int destRow);
 
     void sourceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles);
     void sourceHeaderDataChanged(Qt::Orientation orientation, int first, int last);
@@ -217,16 +171,13 @@ private:
     [[nodiscard]] QVariantList getRandomMappingForRestore() const;
     void restoreShuffleMode(Shuffle mode, QVariantList mapping);
 
-    void loadLocalFile(MetadataFields::EntryMetadataList &newTracks,
-                       QSet<QString> &processedFiles,
+    void loadLocalFile(MetadataFields::EntryMetadataList &newTracks, QSet<QString> &processedFiles,
                        const QFileInfo &fileInfo);
 
-    void loadLocalPlaylist(MetadataFields::EntryMetadataList &newTracks,
-                           QSet<QString> &processedUFiles,
+    void loadLocalPlaylist(MetadataFields::EntryMetadataList &newTracks, QSet<QString> &processedUFiles,
                            const QUrl &fileName, const QByteArray &fileContent);
 
-    void loadLocalDirectory(MetadataFields::EntryMetadataList &newTracks,
-                            QSet<QString> &processedFiles,
+    void loadLocalDirectory(MetadataFields::EntryMetadataList &newTracks, QSet<QString> &processedFiles,
                             const QUrl &dirName);
 
     int filterLocalPlaylist(QList<QUrl> &result, const QUrl &playlistUrl);
@@ -234,4 +185,4 @@ private:
     std::unique_ptr<TrackPlaylistProxyModelPrivate> tpp;
 };
 
-#endif //TRACKPLAYLISTPROXYMODEL_H
+#endif // TRACKPLAYLISTPROXYMODEL_H

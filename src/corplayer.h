@@ -1,12 +1,12 @@
 #ifndef CORPLAYER_H
 #define CORPLAYER_H
 
-#include "playerutils.h"
 #include "metadatafields.h"
+#include "playerutils.h"
 
 #include <QObject>
-#include <QString>
 #include <QQmlEngine>
+#include <QString>
 
 #include <memory>
 
@@ -26,29 +26,17 @@ class CorPlayer : public QObject {
     QML_ELEMENT
     QML_SINGLETON
 
-    Q_PROPERTY(TrackPlaylist *trackPlaylist
-        READ trackPlaylist
-        NOTIFY trackPlaylistChanged)
+    // clang-format off
+    Q_PROPERTY(TrackPlaylist *trackPlaylist READ trackPlaylist NOTIFY trackPlaylistChanged)
 
     Q_PROPERTY(TrackPlaylistProxyModel *trackPlaylistProxyModel
-        READ trackPlaylistProxyModel
-        NOTIFY trackPlaylistProxyModelChanged)
+        READ trackPlaylistProxyModel NOTIFY trackPlaylistProxyModelChanged)
 
-    Q_PROPERTY(MediaPlayerWrapper *mediaPlayer
-        READ mediaPlayer
-        NOTIFY mediaPlayerChanged)
-
-    Q_PROPERTY(ActiveTrackManager *trackManager
-        READ trackManager
-        NOTIFY trackManagerChanged)
-
-    Q_PROPERTY(PlayerManager *playerManager
-        READ playerManager
-        NOTIFY playerManagerChanged)
-
-    Q_PROPERTY(TrackMetadataManager *metadataManager
-        READ metadataManager
-        NOTIFY metadataManagerChanged)
+    Q_PROPERTY(MediaPlayerWrapper *mediaPlayer READ mediaPlayer NOTIFY mediaPlayerChanged)
+    Q_PROPERTY(ActiveTrackManager *trackManager READ trackManager NOTIFY trackManagerChanged)
+    Q_PROPERTY(PlayerManager *playerManager READ playerManager NOTIFY playerManagerChanged)
+    Q_PROPERTY(TrackMetadataManager *metadataManager READ metadataManager NOTIFY metadataManagerChanged)
+    // clang-format on
 
 public:
     explicit CorPlayer(QObject *parent = nullptr);
@@ -69,9 +57,8 @@ Q_SIGNALS:
     void playerManagerChanged();
     void metadataManagerChanged();
 
-    void enqueue(const MetadataFields::EntryMetadataList &tracks,
-        PlayerUtils::PlaylistEnqueueMode enqueueMode,
-        PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
+    void enqueue(const MetadataFields::EntryMetadataList &tracks, PlayerUtils::PlaylistEnqueueMode enqueueMode,
+                 PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
 
     void initializationDone();
 
@@ -84,10 +71,10 @@ private:
     void initializeModels();
     void initializePlayer();
 
-    [[nodiscard]] MetadataFields::EntryMetadataList sanitizePlaylist(
-        const MetadataFields::EntryMetadataList &tracks, const QString &workingDirectory) const;
+    [[nodiscard]] MetadataFields::EntryMetadataList sanitizePlaylist(const MetadataFields::EntryMetadataList &tracks,
+                                                                     const QString &workingDirectory) const;
 
     std::unique_ptr<CorPlayerPrivate> capp;
 };
 
-#endif //CORPLAYER_H
+#endif // CORPLAYER_H

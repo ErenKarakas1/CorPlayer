@@ -2,43 +2,25 @@
 #define PLAYERMANAGER_H
 
 #include <QObject>
-#include <QQmlEngine>
 #include <QPersistentModelIndex>
+#include <QQmlEngine>
 
 class PlayerManager : public QObject {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(bool playControlEnabled
-        READ playControlEnabled
-        NOTIFY playControlEnabledChanged)
-
-    Q_PROPERTY(bool skipBackwardControlEnabled
-        READ skipBackwardControlEnabled
-        NOTIFY skipBackwardControlEnabledChanged)
-
-    Q_PROPERTY(bool skipForwardControlEnabled
-        READ skipForwardControlEnabled
-        NOTIFY skipForwardControlEnabledChanged)
-
-    Q_PROPERTY(bool musicPlaying
-        READ musicPlaying
-        NOTIFY musicPlayingChanged)
+    // clang-format off
+    Q_PROPERTY(bool playControlEnabled READ playControlEnabled NOTIFY playControlEnabledChanged)
+    Q_PROPERTY(bool skipBackwardControlEnabled READ skipBackwardControlEnabled NOTIFY skipBackwardControlEnabledChanged)
+    Q_PROPERTY(bool skipForwardControlEnabled READ skipForwardControlEnabled NOTIFY skipForwardControlEnabledChanged)
+    Q_PROPERTY(bool musicPlaying READ musicPlaying NOTIFY musicPlayingChanged)
 
     Q_PROPERTY(QPersistentModelIndex previousTrack
-        READ previousTrack
-        WRITE setPreviousTrack
-        NOTIFY previousTrackChanged)
+        READ previousTrack WRITE setPreviousTrack NOTIFY previousTrackChanged)
 
-    Q_PROPERTY(QPersistentModelIndex currentTrack
-        READ currentTrack
-        WRITE setCurrentTrack
-        NOTIFY currentTrackChanged)
-
-    Q_PROPERTY(QPersistentModelIndex nextTrack
-        READ nextTrack
-        WRITE setNextTrack
-        NOTIFY nextTrackChanged)
+    Q_PROPERTY(QPersistentModelIndex currentTrack READ currentTrack WRITE setCurrentTrack NOTIFY currentTrackChanged)
+    Q_PROPERTY(QPersistentModelIndex nextTrack READ nextTrack WRITE setNextTrack NOTIFY nextTrackChanged)
+    // clang-format on
 
 public:
     explicit PlayerManager(QObject *parent = nullptr);
@@ -73,4 +55,4 @@ private:
     bool m_isInPlayingState = false;
 };
 
-#endif //PLAYERMANAGER_H
+#endif // PLAYERMANAGER_H

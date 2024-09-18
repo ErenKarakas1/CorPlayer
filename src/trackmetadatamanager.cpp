@@ -61,9 +61,8 @@ QVariant TrackMetadataManager::title() const {
 }
 
 QVariant TrackMetadataManager::album() const {
-    return m_currentTrack.isValid() && !m_currentTrack.data(m_albumRole).isNull()
-           ? m_currentTrack.data(m_albumRole)
-           : QVariant{QString{}};
+    return m_currentTrack.isValid() && !m_currentTrack.data(m_albumRole).isNull() ? m_currentTrack.data(m_albumRole)
+                                                                                  : QVariant{QString{}};
 }
 
 QVariant TrackMetadataManager::albumArtist() const {
@@ -83,9 +82,8 @@ qulonglong TrackMetadataManager::databaseId() const {
 }
 
 PlayerUtils::PlaylistEntryType TrackMetadataManager::trackType() const {
-    return m_currentTrack.isValid()
-        ? m_currentTrack.data(m_trackTypeRole).value<PlayerUtils::PlaylistEntryType>()
-        : PlayerUtils::Unknown;
+    return m_currentTrack.isValid() ? m_currentTrack.data(m_trackTypeRole).value<PlayerUtils::PlaylistEntryType>()
+                                    : PlayerUtils::Unknown;
 }
 
 qulonglong TrackMetadataManager::albumId() const {

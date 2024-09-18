@@ -29,4 +29,4 @@ private:
     QString m_progressDuration;
 };
 
-#endif //TRACKPROGRESSWATCHER_H
+#endif // TRACKPROGRESSWATCHER_H

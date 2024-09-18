@@ -4,11 +4,10 @@
 #include "metadatafields.h"
 #include "playerutils.h"
 
-#include <QQmlEngine>
-#include <QMediaPlayer>
 #include <QAbstractListModel>
+#include <QMediaPlayer>
+#include <QQmlEngine>
 
-#include <tuple>
 #include <memory>
 #include <utility>
 
@@ -89,9 +88,7 @@ public:
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
-    bool moveRows(const QModelIndex &sourceParent,
-                  int sourceRow, int count,
-                  const QModelIndex &destinationParent,
+    bool moveRows(const QModelIndex &sourceParent, int sourceRow, int count, const QModelIndex &destinationParent,
                   int destinationChild) override;
 
     void clearPlaylist();
@@ -108,8 +105,7 @@ Q_SIGNALS:
     void addNewUrl(const QUrl &entryUrl, PlayerUtils::PlaylistEntryType databaseIdType);
 
 public Q_SLOTS:
-    void tracksListAdded(qulonglong newDatabaseId,
-                         const QString &entryTitle,
+    void tracksListAdded(qulonglong newDatabaseId, const QString &entryTitle,
                          PlayerUtils::PlaylistEntryType databaseIdType,
                          const TrackPlaylist::ListTrackMetadataField &tracks);
 
@@ -132,26 +128,22 @@ class TrackPlaylistEntry {
 public:
     TrackPlaylistEntry() = default;
 
-    TrackPlaylistEntry(qulonglong id, QVariant title, QVariant artist,
-                       QVariant album, QVariant trackUrl,
+    TrackPlaylistEntry(qulonglong id, QVariant title, QVariant artist, QVariant album, QVariant trackUrl,
                        QVariant trackNumber, QVariant discNumber,
                        PlayerUtils::PlaylistEntryType entryType = PlayerUtils::Unknown)
-        : m_title(std::move(title)), m_album(std::move(album)),
-          m_artist(std::move(artist)), m_trackUrl(std::move(trackUrl)),
-          m_trackNumber(std::move(trackNumber)), m_discNumber(std::move(discNumber)),
+        : m_title(std::move(title)), m_album(std::move(album)), m_artist(std::move(artist)),
+          m_trackUrl(std::move(trackUrl)), m_trackNumber(std::move(trackNumber)), m_discNumber(std::move(discNumber)),
           m_id(id), m_entryType(entryType) {}
 
     explicit TrackPlaylistEntry(const TrackPlaylist::TrackMetadataField &track)
-        : m_title(track[MetadataFields::TitleRole]),
-          m_album(track[MetadataFields::AlbumRole]),
-          m_trackNumber(track[MetadataFields::TrackNumberRole]),
-          m_discNumber(track[MetadataFields::DiscNumberRole]),
-          m_id(track[MetadataFields::DatabaseIdRole].toULongLong()),
-          m_isValid(true) {}
+        : m_title(track[MetadataFields::TitleRole]), m_album(track[MetadataFields::AlbumRole]),
+          m_trackNumber(track[MetadataFields::TrackNumberRole]), m_discNumber(track[MetadataFields::DiscNumberRole]),
+          m_id(track[MetadataFields::DatabaseIdRole].toULongLong()), m_isValid(true) {}
 
     explicit TrackPlaylistEntry(const QUrl &fileName) : m_trackUrl(std::move(fileName)) {}
 
-    explicit TrackPlaylistEntry(const qulonglong id, const QString &entryTitle, const PlayerUtils::PlaylistEntryType type)
+    explicit TrackPlaylistEntry(const qulonglong id, const QString &entryTitle,
+                                const PlayerUtils::PlaylistEntryType type)
         : m_title(entryTitle), m_id(id), m_isValid(true), m_entryType(type) {}
 
     QVariant m_title;
@@ -168,4 +160,4 @@ public:
 
 QDebug operator<<(const QDebug &stream, const TrackPlaylistEntry &data);
 
-#endif //TRACKPLAYLIST_H
+#endif // TRACKPLAYLIST_H

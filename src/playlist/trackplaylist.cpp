@@ -2,12 +2,12 @@
 
 #include "playerutils.h"
 
-#include <QUrl>
-#include <QList>
 #include <QDebug>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QList>
+#include <QUrl>
 
 #include <algorithm>
 
@@ -17,8 +17,7 @@ public:
     QList<MetadataFields::TrackMetadataField> m_trackFields;
 };
 
-TrackPlaylist::TrackPlaylist(QObject *parent) :
-    QAbstractListModel(parent), tp(new TrackPlaylistPrivate) {}
+TrackPlaylist::TrackPlaylist(QObject *parent) : QAbstractListModel(parent), tp(new TrackPlaylistPrivate) {}
 
 TrackPlaylist::~TrackPlaylist() = default;
 
@@ -89,25 +88,26 @@ QVariant TrackPlaylist::data(const QModelIndex &index, int role) const {
                 result = tp->m_trackFields[index.row()].duration();
                 break;
             case ColumnRoles::StringDurationRole: {
-                QTime trackDuration = tp->m_trackFields[index.row()]
-                        [TrackMetadataField::key_type::DurationRole].toTime();
+                QTime trackDuration =
+                    tp->m_trackFields[index.row()][TrackMetadataField::key_type::DurationRole].toTime();
 
                 if (trackDuration.hour() == 0) {
                     result = trackDuration.toString(QStringLiteral("mm:ss"));
-                }
-                else {
+                } else {
                     result = trackDuration.toString();
                 }
                 break;
             }
             case ColumnRoles::AlbumSectionRole:
-                result = QJsonDocument{
-                    QJsonArray{
-                        tp->m_trackFields[index.row()][TrackMetadataField::key_type::AlbumRole].toString(),
-                        tp->m_trackFields[index.row()][TrackMetadataField::key_type::AlbumArtistRole].toString(),
-                        tp->m_trackFields[index.row()][TrackMetadataField::key_type::ImageUrlRole].toUrl().toString()
-                    }
-                }.toJson();
+                result =
+                    QJsonDocument{
+                        QJsonArray{
+                            tp->m_trackFields[index.row()][TrackMetadataField::key_type::AlbumRole].toString(),
+                            tp->m_trackFields[index.row()][TrackMetadataField::key_type::AlbumArtistRole].toString(),
+                            tp->m_trackFields[index.row()][TrackMetadataField::key_type::ImageUrlRole]
+                                .toUrl()
+                                .toString()}}
+                        .toJson();
                 break;
             case ColumnRoles::TitleRole: {
                 const auto &trackData = tp->m_trackFields[index.row()];
@@ -115,8 +115,7 @@ QVariant TrackPlaylist::data(const QModelIndex &index, int role) const {
 
                 if (titleData.toString().isEmpty()) {
                     result = trackData[TrackMetadataField::key_type::ResourceRole].toUrl().fileName();
-                }
-                else {
+                } else {
                     result = titleData;
                 }
                 break;
@@ -145,8 +144,7 @@ QVariant TrackPlaylist::data(const QModelIndex &index, int role) const {
                 auto itData = trackData.find(roleEnum);
                 if (itData != trackData.end()) {
                     result = itData.value();
-                }
-                else {
+                } else {
                     result = {};
                 }
         }
@@ -178,19 +176,16 @@ QVariant TrackPlaylist::data(const QModelIndex &index, int role) const {
                 result = tp->m_fields[index.row()].m_title;
                 break;
             case ColumnRoles::ImageUrlRole:
-                result = QUrl(QStringLiteral("error image")); //TODO: change to error image
+                result = QUrl(QStringLiteral("error image")); // TODO: change to error image
                 break;
             case ColumnRoles::ShadowForImageRole:
                 result = false;
                 break;
             case ColumnRoles::AlbumSectionRole:
-                result = QJsonDocument{
-                    QJsonArray{
-                        tp->m_fields[index.row()].m_album.toString(),
-                        tp->m_fields[index.row()].m_artist.toString(),
-                        QUrl(QStringLiteral("error image")).toString()
-                    }
-                }.toJson(); //TODO: change to error image
+                result = QJsonDocument{QJsonArray{tp->m_fields[index.row()].m_album.toString(),
+                                                  tp->m_fields[index.row()].m_artist.toString(),
+                                                  QUrl(QStringLiteral("error image")).toString()}}
+                             .toJson(); // TODO: change to error image
                 break;
             default:
                 result = {};
@@ -274,8 +269,7 @@ bool TrackPlaylist::moveRows(const QModelIndex &sourceParent, int sourceRow, int
         if (sourceRow < destinationChild) {
             tp->m_fields.move(sourceRow, destinationChild - 1);
             tp->m_trackFields.move(sourceRow, destinationChild - 1);
-        }
-        else {
+        } else {
             tp->m_fields.move(sourceRow, destinationChild);
             tp->m_trackFields.move(sourceRow, destinationChild);
         }
@@ -300,11 +294,11 @@ void TrackPlaylist::enqueueRestoredEntries(const QVariantList &newEntries) {
         }
 
         auto restoredId = trackData[0].toULongLong();
-        auto restoredTitle = trackData[1];
-        auto restoredArtist = trackData[2];
-        auto restoredAlbum = trackData[3];
-        auto restoredTrackNumber = trackData[4];
-        auto restoredDiscNumber = trackData[5];
+        const auto &restoredTitle = trackData[1];
+        const auto &restoredArtist = trackData[2];
+        const auto &restoredAlbum = trackData[3];
+        const auto &restoredTrackNumber = trackData[4];
+        const auto &restoredDiscNumber = trackData[5];
         auto restoredFileUrl = QVariant{};
 
         if (trackData.size() == 8) {
@@ -312,10 +306,8 @@ void TrackPlaylist::enqueueRestoredEntries(const QVariantList &newEntries) {
         }
 
         auto m_entryType = static_cast<PlayerUtils::PlaylistEntryType>(trackData[6].toInt());
-        auto newEntry = TrackPlaylistEntry({
-            restoredId, restoredTitle, restoredArtist, restoredAlbum, restoredFileUrl, restoredTrackNumber,
-            restoredDiscNumber, m_entryType
-        });
+        auto newEntry = TrackPlaylistEntry({restoredId, restoredTitle, restoredArtist, restoredAlbum, restoredFileUrl,
+                                            restoredTrackNumber, restoredDiscNumber, m_entryType});
 
         tp->m_fields.push_back(newEntry);
         tp->m_trackFields.push_back({});
@@ -331,20 +323,14 @@ void TrackPlaylist::enqueueRestoredEntries(const QVariantList &newEntries) {
                 } else if (newEntry.m_title.toString().isEmpty()) {
                     Q_EMIT addNewEntry(0, entryString, PlayerUtils::FileName);
                 } else {
-                    Q_EMIT addTrackByName(newEntry.m_title,
-                                          newEntry.m_artist,
-                                          newEntry.m_album,
-                                          newEntry.m_trackNumber,
+                    Q_EMIT addTrackByName(newEntry.m_title, newEntry.m_artist, newEntry.m_album, newEntry.m_trackNumber,
                                           newEntry.m_discNumber);
                 }
             } else {
                 tp->m_fields.last().m_isValid = true;
             }
         } else {
-            Q_EMIT addTrackByName(newEntry.m_title,
-                                  newEntry.m_artist,
-                                  newEntry.m_album,
-                                  newEntry.m_trackNumber,
+            Q_EMIT addTrackByName(newEntry.m_title, newEntry.m_artist, newEntry.m_album, newEntry.m_trackNumber,
                                   newEntry.m_discNumber);
         }
     }
@@ -356,10 +342,10 @@ void TrackPlaylist::enqueueOneEntry(const MetadataFields::EntryMetadata &entryDa
 }
 
 void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataList &entriesData, int insertAt) {
-    const int validEntries = std::accumulate(entriesData.cbegin(), entriesData.cend(), 0,
-                                             [](const int validEntries, const auto &entryData) {
-                                                 return entryData.isValid() ? validEntries + 1 : validEntries;
-                                             });
+    const int validEntries =
+        std::accumulate(entriesData.cbegin(), entriesData.cend(), 0, [](const int validEntries, const auto &entryData) {
+            return entryData.isValid() ? validEntries + 1 : validEntries;
+        });
 
     if (validEntries == 0) {
         return;
@@ -376,9 +362,8 @@ void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataLi
             continue;
         }
 
-        const auto trackUrl = entryData.url.isValid()
-                                  ? entryData.url
-                                  : entryData.musicMetadata[MetadataFields::ResourceRole].toUrl();
+        const auto trackUrl =
+            entryData.url.isValid() ? entryData.url : entryData.musicMetadata[MetadataFields::ResourceRole].toUrl();
 
         if (!entryData.musicMetadata.databaseId() && trackUrl.isValid()) {
             auto newEntry = TrackPlaylistEntry{trackUrl};
@@ -387,16 +372,14 @@ void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataLi
             tp->m_fields.insert(i, std::move(newEntry));
             tp->m_trackFields.insert(i, {});
         } else {
-            tp->m_fields.insert(i, TrackPlaylistEntry{
-                                    entryData.musicMetadata.databaseId(), entryData.title,
-                                    entryData.musicMetadata.elementType()
-                                });
+            tp->m_fields.insert(i, TrackPlaylistEntry{entryData.musicMetadata.databaseId(), entryData.title,
+                                                      entryData.musicMetadata.elementType()});
             const auto &data = entryData.musicMetadata;
 
             switch (data.elementType()) {
                 case PlayerUtils::Track:
                 case PlayerUtils::FileName:
-                    tp->m_trackFields.insert(i, static_cast<const MetadataFields::TrackMetadataField&>(data));
+                    tp->m_trackFields.insert(i, static_cast<const MetadataFields::TrackMetadataField &>(data));
                     break;
                 default:
                     tp->m_trackFields.insert(i, {});
@@ -404,9 +387,8 @@ void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataLi
         }
 
         if (trackUrl.isValid()) {
-            Q_EMIT addNewUrl(trackUrl, entryData.musicMetadata.hasElementType()
-                                           ? entryData.musicMetadata.elementType()
-                                           : PlayerUtils::FileName);
+            Q_EMIT addNewUrl(trackUrl, entryData.musicMetadata.hasElementType() ? entryData.musicMetadata.elementType()
+                                                                                : PlayerUtils::FileName);
 
         } else {
             Q_EMIT addNewEntry(entryData.musicMetadata.databaseId(), entryData.title,
@@ -434,9 +416,9 @@ QVariantList TrackPlaylist::getEntriesForRestore() const {
     QVariantList result;
 
     for (int trackIndex = 0; trackIndex < tp->m_fields.size(); ++trackIndex) {
-        QStringList oneData;
         const auto &oneEntry = tp->m_fields[trackIndex];
         if (oneEntry.m_isValid) {
+            QStringList oneData;
             const auto &oneTrack = tp->m_trackFields[trackIndex];
 
             oneData.push_back(QString::number(oneTrack.databaseId()));
@@ -469,8 +451,7 @@ QVariantList TrackPlaylist::getEntriesForRestore() const {
     return result;
 }
 
-void TrackPlaylist::tracksListAdded(qulonglong newDatabaseId,
-                                    const QString &entryTitle,
+void TrackPlaylist::tracksListAdded(qulonglong newDatabaseId, const QString &entryTitle,
                                     PlayerUtils::PlaylistEntryType databaseIdType,
                                     const ListTrackMetadataField &tracks) {
     if (tracks.isEmpty()) {
@@ -526,9 +507,9 @@ void TrackPlaylist::trackChanged(const TrackMetadataField &track) {
 
             if (!trackData.empty()) {
                 bool sameData = true;
-                for (auto oneKeyIterator = track.constKeyValueBegin(); oneKeyIterator != track.constKeyValueEnd(); ++
-                     oneKeyIterator) {
-                    if (trackData[(*oneKeyIterator).first] != (*oneKeyIterator).second) {
+                for (auto oneKeyIterator = track.constKeyValueBegin(); oneKeyIterator != track.constKeyValueEnd();
+                     ++oneKeyIterator) {
+                    if (trackData[oneKeyIterator->first] != oneKeyIterator->second) {
                         sameData = false;
                         break;
                     }
@@ -625,8 +606,7 @@ void TrackPlaylist::trackInError(const QUrl &sourceInError, QMediaPlayer::Error 
 }
 
 QDebug operator<<(const QDebug &stream, const TrackPlaylistEntry &data) {
-    stream << data.m_title << data.m_album << data.m_artist << data.m_trackUrl << data.m_trackNumber << data.
-            m_discNumber <<
-            data.m_id << data.m_isValid;
+    stream << data.m_title << data.m_album << data.m_artist << data.m_trackUrl << data.m_trackNumber
+           << data.m_discNumber << data.m_id << data.m_isValid;
     return stream;
 }

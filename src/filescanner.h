@@ -15,7 +15,8 @@ public:
     MetadataFields::TrackMetadataField scanFile(const QUrl &file, const QFileInfo &fileInfo);
 
 private:
+    bool tryExtractEmbeddedCoverImage(const QString &localFile);
     std::unique_ptr<FileScannerPrivate> fs;
 };
 
-#endif //FILESCANNER_H
+#endif // FILESCANNER_H

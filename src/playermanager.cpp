@@ -26,9 +26,7 @@ void PlayerManager::playerPausedOrStopped() {
         m_isInPlayingState = false;
         Q_EMIT musicPlayingChanged();
 
-        if (!m_currentTrack.isValid()) {
-            return;
-        }
+        if (!m_currentTrack.isValid()) return;
 
         if (oldNextTrackIsEnabled != skipForwardControlEnabled()) {
             Q_EMIT skipForwardControlEnabledChanged();
@@ -48,9 +46,7 @@ void PlayerManager::playerPlaying() {
         m_isInPlayingState = true;
         Q_EMIT musicPlayingChanged();
 
-        if (!m_currentTrack.isValid()) {
-            return;
-        }
+        if (!m_currentTrack.isValid()) return;
 
         if (oldNextTrackIsEnabled != skipForwardControlEnabled()) {
             Q_EMIT skipForwardControlEnabledChanged();
@@ -63,9 +59,7 @@ void PlayerManager::playerPlaying() {
 }
 
 void PlayerManager::setPreviousTrack(const QPersistentModelIndex &previousTrack) {
-    if (m_previousTrack == previousTrack) {
-        return;
-    }
+    if (m_previousTrack == previousTrack) return;
 
     bool oldValueSkipBackward = skipBackwardControlEnabled();
 
@@ -78,9 +72,7 @@ void PlayerManager::setPreviousTrack(const QPersistentModelIndex &previousTrack)
 }
 
 void PlayerManager::setCurrentTrack(const QPersistentModelIndex &currentTrack) {
-    if (m_currentTrack == currentTrack) {
-        return;
-    }
+    if (m_currentTrack == currentTrack) return;
 
     bool oldPlayControlEnabled = playControlEnabled();
 
@@ -93,9 +85,7 @@ void PlayerManager::setCurrentTrack(const QPersistentModelIndex &currentTrack) {
 }
 
 void PlayerManager::setNextTrack(const QPersistentModelIndex &nextTrack) {
-    if (m_nextTrack == nextTrack) {
-        return;
-    }
+    if (m_nextTrack == nextTrack) return;
 
     bool oldValueSkipForward = skipForwardControlEnabled();
 

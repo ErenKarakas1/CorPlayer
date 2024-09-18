@@ -12,6 +12,6 @@ TracksWatchdog::TracksWatchdog(QObject *parent) : QObject(parent), tw(std::make_
 TracksWatchdog::~TracksWatchdog() = default;
 
 void TracksWatchdog::addNewUrl(const QUrl &entryUrl, PlayerUtils::PlaylistEntryType databaseIdType) {
-    auto newTrack = tw->m_fileScanner.scanFile(entryUrl);
+    const auto newTrack = tw->m_fileScanner.scanFile(entryUrl);
     Q_EMIT trackHasChanged(newTrack);
 }

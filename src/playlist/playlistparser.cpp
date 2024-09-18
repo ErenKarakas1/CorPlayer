@@ -14,7 +14,6 @@ QList<QUrl> M3UPlaylistParser::fromPlaylist(const QUrl &m3uFile, const QByteArra
             result.append(url);
         }
     }
-
     return result;
 }
 
@@ -27,7 +26,6 @@ QString M3UPlaylistParser::toPlaylist(const QUrl &m3uFile, const QList<QString> 
             result += line + QStringLiteral("\n");
         }
     }
-
     return result;
 }
 
@@ -38,8 +36,7 @@ QList<QUrl> PlaylistParser::fromPlaylist(const QUrl &m3uFile, const QByteArray &
         auto mimeType = QMimeDatabase().mimeTypeForUrl(m3uFile);
 
         if (mimeType.name().contains(QStringLiteral("mpegurl"))) {
-            M3UPlaylistParser m3uPlaylistParser;
-            result = m3uPlaylistParser.fromPlaylist(m3uFile, content);
+            result = M3UPlaylistParser::fromPlaylist(m3uFile, content);
         }
     }
 
@@ -53,8 +50,7 @@ QString PlaylistParser::toPlaylist(const QUrl &m3uFile, const QList<QString> &ur
         auto mimeType = QMimeDatabase().mimeTypeForUrl(m3uFile);
 
         if (mimeType.name().contains(QStringLiteral("mpegurl"))) {
-            M3UPlaylistParser m3uPlaylistParser;
-            result = m3uPlaylistParser.toPlaylist(m3uFile, urls);
+            result = M3UPlaylistParser::toPlaylist(m3uFile, urls);
         }
     }
 

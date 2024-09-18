@@ -3,14 +3,14 @@
 
 #include "playerutils.h"
 
-#include <QUrl>
-#include <QMap>
-#include <QList>
-#include <QObject>
-#include <QString>
-#include <QVariant>
 #include <QDateTime>
+#include <QList>
+#include <QMap>
+#include <QObject>
 #include <QQmlEngine>
+#include <QString>
+#include <QUrl>
+#include <QVariant>
 
 #include <utility>
 
@@ -92,31 +92,30 @@ public:
     public:
         using MusicMetadataField::MusicMetadataField;
 
-        TrackMetadataField(
-            bool aValid, QString aId, QString aParentId, QString aTitle,
-            QString aArtist, QString aAlbumName, QString aAlbumArtist,
-            int aTrackNumber, int aDiscNumber, QTime aDuration, QUrl aResourceURI,
-            const QDateTime& fileModificationTime, QUrl aAlbumCover, bool aIsSingleDiscAlbum,
-            QString aGenre, QString aComposer, QString aLyricist, bool aHasEmbeddedCover)
-        : MusicMetadataField({
-            {key_type::TitleRole, std::move(aTitle)},
-            {key_type::AlbumRole, std::move(aAlbumName)},
-            {key_type::ArtistRole, std::move(aArtist)},
-            {key_type::AlbumArtistRole, std::move(aAlbumArtist)},
-            {key_type::IdRole, std::move(aId)},
-            {key_type::ParentIdRole, std::move(aParentId)},
-            {key_type::TrackNumberRole, aTrackNumber},
-            {key_type::DiscNumberRole, aDiscNumber},
-            {key_type::DurationRole, aDuration},
-            {key_type::ResourceRole, std::move(aResourceURI)},
-            {key_type::FileModificationTime, fileModificationTime},
-            {key_type::ImageUrlRole, std::move(aAlbumCover)},
-            {key_type::IsSingleDiscAlbumRole, aIsSingleDiscAlbum},
-            {key_type::GenreRole, std::move(aGenre)},
-            {key_type::ComposerRole, std::move(aComposer)},
-            {key_type::LyricistRole, std::move(aLyricist)},
-            {key_type::HasEmbeddedCover, aHasEmbeddedCover},
-        }) {
+        TrackMetadataField(bool aValid, QString aId, QString aParentId, QString aTitle, QString aArtist,
+                           QString aAlbumName, QString aAlbumArtist, int aTrackNumber, int aDiscNumber, QTime aDuration,
+                           QUrl aResourceURI, const QDateTime &fileModificationTime, QUrl aAlbumCover,
+                           bool aIsSingleDiscAlbum, QString aGenre, QString aComposer, QString aLyricist,
+                           bool aHasEmbeddedCover)
+            : MusicMetadataField({
+                  {key_type::TitleRole, std::move(aTitle)},
+                  {key_type::AlbumRole, std::move(aAlbumName)},
+                  {key_type::ArtistRole, std::move(aArtist)},
+                  {key_type::AlbumArtistRole, std::move(aAlbumArtist)},
+                  {key_type::IdRole, std::move(aId)},
+                  {key_type::ParentIdRole, std::move(aParentId)},
+                  {key_type::TrackNumberRole, aTrackNumber},
+                  {key_type::DiscNumberRole, aDiscNumber},
+                  {key_type::DurationRole, aDuration},
+                  {key_type::ResourceRole, std::move(aResourceURI)},
+                  {key_type::FileModificationTime, fileModificationTime},
+                  {key_type::ImageUrlRole, std::move(aAlbumCover)},
+                  {key_type::IsSingleDiscAlbumRole, aIsSingleDiscAlbum},
+                  {key_type::GenreRole, std::move(aGenre)},
+                  {key_type::ComposerRole, std::move(aComposer)},
+                  {key_type::LyricistRole, std::move(aLyricist)},
+                  {key_type::HasEmbeddedCover, aHasEmbeddedCover},
+              }) {
             Q_UNUSED(aValid)
         }
 
@@ -232,7 +231,7 @@ public:
         }
 
         [[nodiscard]] bool isValidArtist() const {
-            const auto& artistData = value(ArtistRole);
+            const auto &artistData = value(ArtistRole);
             return artistData.isValid() && !artistData.toString().isEmpty();
         }
 
@@ -310,4 +309,4 @@ Q_DECLARE_METATYPE(MetadataFields::ListGenreMetadataField)
 Q_DECLARE_METATYPE(MetadataFields::EntryMetadata)
 Q_DECLARE_METATYPE(MetadataFields::EntryMetadataList)
 
-#endif //METADATAFIELDS_H
+#endif // METADATAFIELDS_H

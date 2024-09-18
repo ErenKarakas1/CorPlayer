@@ -3,19 +3,16 @@
 
 #include "playerutils.h"
 
-#include <QUrl>
 #include <QObject>
-#include <QQmlEngine>
 #include <QPersistentModelIndex>
+#include <QQmlEngine>
+#include <QUrl>
 
 class TrackMetadataManager : public QObject {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(QPersistentModelIndex currentTrack
-        READ currentTrack
-        WRITE setCurrentTrack
-        NOTIFY currentTrackChanged)
+    Q_PROPERTY(QPersistentModelIndex currentTrack READ currentTrack WRITE setCurrentTrack NOTIFY currentTrackChanged)
 
     Q_PROPERTY(int artistRole READ artistRole WRITE setArtistRole NOTIFY artistRoleChanged)
     Q_PROPERTY(int titleRole READ titleRole WRITE setTitleRole NOTIFY titleRoleChanged)
@@ -139,4 +136,4 @@ private:
     bool m_oldIsValid = false;
 };
 
-#endif //TRACKMETADATAMANAGER_H
+#endif // TRACKMETADATAMANAGER_H

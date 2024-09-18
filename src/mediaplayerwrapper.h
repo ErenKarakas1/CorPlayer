@@ -1,10 +1,9 @@
 #ifndef MEDIAPLAYERWRAPPER_H
 #define MEDIAPLAYERWRAPPER_H
 
+#include <QMediaPlayer>
 #include <QObject>
 #include <QQmlEngine>
-#include <QMediaPlayer>
-#include <QAudioOutput>
 
 #include <memory>
 
@@ -25,7 +24,7 @@ class MediaPlayerWrapper : public QObject {
     Q_PROPERTY(bool isSeekable READ isSeekable NOTIFY seekableChanged)
 
 public:
-    explicit MediaPlayerWrapper(QObject* parent = nullptr);
+    explicit MediaPlayerWrapper(QObject *parent = nullptr);
     ~MediaPlayerWrapper() override;
     [[nodiscard]] QUrl source() const;
     [[nodiscard]] QMediaPlayer::MediaStatus status() const;
@@ -52,7 +51,7 @@ Q_SIGNALS:
     void stopped();
 
 public Q_SLOTS:
-    void setSource(const QUrl& newSource);
+    void setSource(const QUrl &newSource);
     void play();
     void pause();
     void stop();

@@ -3,11 +3,11 @@
 
 #include "playerutils.h"
 
-#include <QUrl>
-#include <QObject>
-#include <QQmlEngine>
 #include <QMediaPlayer>
+#include <QObject>
 #include <QPersistentModelIndex>
+#include <QQmlEngine>
+#include <QUrl>
 
 class QDateTime;
 
@@ -15,15 +15,9 @@ class ActiveTrackManager : public QObject {
     Q_OBJECT
     QML_ELEMENT
 
-    Q_PROPERTY(QPersistentModelIndex currentTrack
-        READ currentTrack
-        WRITE setCurrentTrack
-        NOTIFY currentTrackChanged)
-
-    Q_PROPERTY(QAbstractItemModel *playlistModel
-        READ playlistModel
-        WRITE setPlaylistModel
-        NOTIFY playlistModelChanged)
+    // clang-format off
+    Q_PROPERTY(QPersistentModelIndex currentTrack READ currentTrack WRITE setCurrentTrack NOTIFY currentTrackChanged)
+    Q_PROPERTY(QAbstractItemModel *playlistModel READ playlistModel WRITE setPlaylistModel NOTIFY playlistModelChanged)
 
     Q_PROPERTY(QUrl trackSource READ trackSource NOTIFY trackSourceChanged)
     Q_PROPERTY(int titleRole READ titleRole WRITE setTitleRole NOTIFY titleRoleChanged)
@@ -31,40 +25,26 @@ class ActiveTrackManager : public QObject {
     Q_PROPERTY(int albumRole READ albumRole WRITE setAlbumRole NOTIFY albumRoleChanged)
     Q_PROPERTY(int urlRole READ urlRole WRITE setUrlRole NOTIFY urlRoleChanged)
     Q_PROPERTY(int isPlayingRole READ isPlayingRole WRITE setIsPlayingRole NOTIFY isPlayingRoleChanged)
-
-    Q_PROPERTY(QMediaPlayer::MediaStatus trackStatus
-        READ trackStatus
-        WRITE setTrackStatus
-        NOTIFY trackStatusChanged)
+    Q_PROPERTY(QMediaPlayer::MediaStatus trackStatus READ trackStatus WRITE setTrackStatus NOTIFY trackStatusChanged)
 
     Q_PROPERTY(QMediaPlayer::PlaybackState trackPlaybackState
-        READ trackPlaybackState
-        WRITE setTrackPlaybackState
-        NOTIFY trackPlaybackStateChanged)
+        READ trackPlaybackState WRITE setTrackPlaybackState NOTIFY trackPlaybackStateChanged)
 
-    Q_PROPERTY(QMediaPlayer::Error trackError
-        READ trackError
-        WRITE setTrackError
-        NOTIFY trackErrorChanged)
-
+    Q_PROPERTY(QMediaPlayer::Error trackError READ trackError WRITE setTrackError NOTIFY trackErrorChanged)
     Q_PROPERTY(qint64 trackDuration READ trackDuration WRITE setTrackDuration NOTIFY trackDurationChanged)
     Q_PROPERTY(bool trackIsSeekable READ trackIsSeekable WRITE setTrackIsSeekable NOTIFY trackIsSeekableChanged)
     Q_PROPERTY(qint64 trackPosition READ trackPosition WRITE setTrackPosition NOTIFY trackPositionChanged)
 
     Q_PROPERTY(qint64 trackControlPosition
-        READ trackControlPosition
-        WRITE setTrackControlPosition
-        NOTIFY trackControlPositionChanged)
+        READ trackControlPosition WRITE setTrackControlPosition NOTIFY trackControlPositionChanged)
 
-    Q_PROPERTY(QVariantMap persistentState
-        READ persistentState
-        WRITE setPersistentState
-        NOTIFY persistentStateChanged)
+    Q_PROPERTY(QVariantMap persistentState READ persistentState WRITE setPersistentState NOTIFY persistentStateChanged)
+    // clang-format on
 
 public:
     explicit ActiveTrackManager(QObject *parent = nullptr);
     [[nodiscard]] QPersistentModelIndex currentTrack() const;
-    [[nodiscard]] QAbstractItemModel* playlistModel() const;
+    [[nodiscard]] QAbstractItemModel *playlistModel() const;
     [[nodiscard]] QUrl trackSource() const;
     [[nodiscard]] int titleRole() const;
     [[nodiscard]] int artistRole() const;

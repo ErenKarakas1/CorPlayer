@@ -15,9 +15,7 @@ QString TrackProgressWatchdog::progressDuration() const {
 }
 
 void TrackProgressWatchdog::setPosition(int position) {
-    if (m_position == position) {
-        return;
-    }
+    if (m_position == position) return;
 
     m_position = position;
     QTime currentProgress = QTime::fromMSecsSinceStartOfDay(m_position);

@@ -3,8 +3,8 @@
 #include "playlist/trackplaylist.h"
 #include "playlist/trackplaylistproxymodel.h"
 
-#include "mediaplayerwrapper.h"
 #include "activetrackmanager.h"
+#include "mediaplayerwrapper.h"
 #include "playermanager.h"
 #include "trackmetadatamanager.h"
 #include "trackswatchdog.h"
@@ -36,9 +36,7 @@ public:
     std::unique_ptr<TracksWatchdog> m_listener;
 };
 
-CorPlayer::CorPlayer(QObject *parent) :
-    QObject(parent), capp(std::make_unique<CorPlayerPrivate>(this)) {
-}
+CorPlayer::CorPlayer(QObject *parent) : QObject(parent), capp(std::make_unique<CorPlayerPrivate>(this)) {}
 
 CorPlayer::~CorPlayer() = default;
 
@@ -56,18 +54,19 @@ bool CorPlayer::openFiles(const QList<QUrl> &files, const QString &workingDirect
             qDebug() << "openFiles: loading playlist: " << file;
             capp->m_trackPlaylistProxyModel->loadPlaylist(file);
         } else if (mime.name().startsWith(QStringLiteral("audio/"))) {
-            tracks.push_back(MetadataFields::EntryMetadata{{
-                {MetadataFields::ElementTypeRole, PlayerUtils::FileName},
-                {MetadataFields::ResourceRole, file}, {}, {}}});
+            tracks.push_back(MetadataFields::EntryMetadata{{{MetadataFields::ElementTypeRole, PlayerUtils::FileName},
+                                                            {MetadataFields::ResourceRole, file},
+                                                            {},
+                                                            {}}});
         }
     }
 
     qDebug() << "openFiles: " << tracks.count() << " tracks before sanitize";
-    auto targetFiles = sanitizePlaylist(tracks, workingDirectory);
+    const auto targetFiles = sanitizePlaylist(tracks, workingDirectory);
 
     if (!targetFiles.isEmpty()) {
-        qDebug() << "openFiles: enqueueing " << targetFiles.count() << " tracks";
-        Q_EMIT enqueue(targetFiles, PlayerUtils::PlaylistEnqueueMode::AppendPlaylist, PlayerUtils::PlaylistEnqueueTriggerPlay::TriggerPlay);
+        Q_EMIT enqueue(targetFiles, PlayerUtils::PlaylistEnqueueMode::AppendPlaylist,
+                       PlayerUtils::PlaylistEnqueueTriggerPlay::TriggerPlay);
     }
 
     qDebug() << "openFiles: " << tracks.count() << " tracks loaded";
@@ -91,10 +90,9 @@ void CorPlayer::initializeModels() {
     Q_EMIT trackPlaylistProxyModelChanged();
 
     connect(this, &CorPlayer::enqueue, capp->m_trackPlaylistProxyModel.get(),
-        static_cast
-        <void (TrackPlaylistProxyModel::*)
-        (const MetadataFields::EntryMetadataList&, PlayerUtils::PlaylistEnqueueMode, PlayerUtils::PlaylistEnqueueTriggerPlay)>
-            (&TrackPlaylistProxyModel::enqueue));
+            static_cast<void (TrackPlaylistProxyModel::*)(
+                const MetadataFields::EntryMetadataList &, PlayerUtils::PlaylistEnqueueMode,
+                PlayerUtils::PlaylistEnqueueTriggerPlay)>(&TrackPlaylistProxyModel::enqueue));
 }
 
 void CorPlayer::initializePlayer() {
@@ -119,6 +117,7 @@ void CorPlayer::initializePlayer() {
     capp->m_trackManager->setIsPlayingRole(TrackPlaylist::IsPlayingRole);
     capp->m_trackManager->setPlaylistModel(capp->m_trackPlaylistProxyModel.get());
 
+    // clang-format off
     connect(capp->m_trackManager.get(), &ActiveTrackManager::trackPlay, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::play);
     connect(capp->m_trackManager.get(), &ActiveTrackManager::trackPause, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::pause);
     connect(capp->m_trackManager.get(), &ActiveTrackManager::trackStop, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::stop);
@@ -172,11 +171,11 @@ void CorPlayer::initializePlayer() {
     // TODO temp
     connect(capp->m_trackPlaylist.get(), &TrackPlaylist::addNewUrl, capp->m_listener.get(), &TracksWatchdog::addNewUrl);
     connect(capp->m_listener.get(), &TracksWatchdog::trackHasChanged, capp->m_trackPlaylist.get(), &TrackPlaylist::trackChanged);
+    // clang-format on
 }
 
-MetadataFields::EntryMetadataList CorPlayer::sanitizePlaylist(
-    const MetadataFields::EntryMetadataList &tracks, const QString &workingDirectory) const {
-
+MetadataFields::EntryMetadataList CorPlayer::sanitizePlaylist(const MetadataFields::EntryMetadataList &tracks,
+                                                              const QString &workingDirectory) const {
     auto result = MetadataFields::EntryMetadataList{};
     for (const auto &track : tracks) {
         auto trackUrl = track.musicMetadata[MetadataFields::ResourceRole].toUrl();
