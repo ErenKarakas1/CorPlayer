@@ -1,5 +1,14 @@
 build/
-.idea/
+perf/
+
 *.opus
 *.mp3
+
+# local settings
+.idea/
+.vscode/
+.zed/
+.cache/
+*.collapsed
+compile_commands.json
 CMakeLists.txt.user

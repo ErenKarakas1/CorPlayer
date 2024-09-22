@@ -1,0 +1,84 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "displayName": "base preset",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../build/desktop-${presetName}/",
+      "hidden": true
+    },
+    {
+      "name": "dev-gcc",
+      "displayName": "gcc with debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      },
+      "inherits": [
+        "base"
+      ]
+    },
+    {
+      "name": "dev-clang",
+      "displayName": "clang with debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      },
+      "environment": {
+        "CXX": "clang++",
+        "CCACHE_DISABLE": "ON"
+      },
+      "inherits": [
+        "base"
+      ]
+    },
+    {
+      "name": "release",
+      "displayName": "Build as release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "environment": {
+        "CXX": "clang++",
+        "CCACHE_DISABLE": "ON"
+      },
+      "inherits": [
+        "base"
+      ]
+    },
+    {
+      "name": "profile",
+      "displayName": "profile",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "inherits": [
+        "base"
+      ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev-gcc",
+      "configurePreset": "dev-gcc",
+      "targets": [
+        "all"
+      ]
+    },
+    {
+      "name": "dev-clang",
+      "configurePreset": "dev-clang"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release"
+    }
+  ]
+}
