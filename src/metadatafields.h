@@ -152,7 +152,8 @@ public:
         }
 
         [[nodiscard]] QTime duration() const {
-            return value(DurationRole).toTime();
+            const int durationSecs = value(DurationRole).toInt();
+            return QTime(0, 0, 0).addSecs(durationSecs);
         }
 
         [[nodiscard]] QUrl resourceURI() const {
@@ -284,6 +285,25 @@ public:
 
     using ListGenreMetadataField = QList<GenreMetadataField>;
 
+    class PlaylistMetadataField : public MusicMetadataField {
+    public:
+        using MusicMetadataField::MusicMetadataField;
+
+        [[nodiscard]] QString name() const {
+            return value(TitleRole).toString();
+        }
+
+        [[nodiscard]] QUrl resourceURI() const {
+            return value(ResourceRole).toUrl();
+        }
+
+        [[nodiscard]] qulonglong databaseId() const {
+            return value(DatabaseIdRole).toULongLong();
+        }
+    };
+
+    using ListPlaylistMetadataField = QList<PlaylistMetadataField>;
+
     struct EntryMetadata {
         MusicMetadataField musicMetadata;
         QString title;
@@ -302,10 +322,14 @@ Q_DECLARE_METATYPE(MetadataFields::TrackMetadataField)
 Q_DECLARE_METATYPE(MetadataFields::AlbumMetadataField)
 Q_DECLARE_METATYPE(MetadataFields::ArtistMetadataField)
 Q_DECLARE_METATYPE(MetadataFields::GenreMetadataField)
+Q_DECLARE_METATYPE(MetadataFields::PlaylistMetadataField)
+
 Q_DECLARE_METATYPE(MetadataFields::ListTrackMetadataField)
 Q_DECLARE_METATYPE(MetadataFields::ListAlbumMetadataField)
 Q_DECLARE_METATYPE(MetadataFields::ListArtistMetadataField)
 Q_DECLARE_METATYPE(MetadataFields::ListGenreMetadataField)
+Q_DECLARE_METATYPE(MetadataFields::ListPlaylistMetadataField)
+
 Q_DECLARE_METATYPE(MetadataFields::EntryMetadata)
 Q_DECLARE_METATYPE(MetadataFields::EntryMetadataList)
 

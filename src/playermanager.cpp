@@ -61,7 +61,7 @@ void PlayerManager::playerPlaying() {
 void PlayerManager::setPreviousTrack(const QPersistentModelIndex &previousTrack) {
     if (m_previousTrack == previousTrack) return;
 
-    bool oldValueSkipBackward = skipBackwardControlEnabled();
+    const bool oldValueSkipBackward = skipBackwardControlEnabled();
 
     m_previousTrack = previousTrack;
     Q_EMIT previousTrackChanged();
@@ -74,7 +74,7 @@ void PlayerManager::setPreviousTrack(const QPersistentModelIndex &previousTrack)
 void PlayerManager::setCurrentTrack(const QPersistentModelIndex &currentTrack) {
     if (m_currentTrack == currentTrack) return;
 
-    bool oldPlayControlEnabled = playControlEnabled();
+    const bool oldPlayControlEnabled = playControlEnabled();
 
     m_currentTrack = currentTrack;
     Q_EMIT currentTrackChanged();
@@ -87,7 +87,7 @@ void PlayerManager::setCurrentTrack(const QPersistentModelIndex &currentTrack) {
 void PlayerManager::setNextTrack(const QPersistentModelIndex &nextTrack) {
     if (m_nextTrack == nextTrack) return;
 
-    bool oldValueSkipForward = skipForwardControlEnabled();
+    const bool oldValueSkipForward = skipForwardControlEnabled();
 
     m_nextTrack = nextTrack;
     Q_EMIT nextTrackChanged();

@@ -140,7 +140,7 @@ public:
           m_trackNumber(track[MetadataFields::TrackNumberRole]), m_discNumber(track[MetadataFields::DiscNumberRole]),
           m_id(track[MetadataFields::DatabaseIdRole].toULongLong()), m_isValid(true) {}
 
-    explicit TrackPlaylistEntry(const QUrl &fileName) : m_trackUrl(std::move(fileName)) {}
+    explicit TrackPlaylistEntry(const QUrl &fileName) : m_trackUrl(fileName) {}
 
     explicit TrackPlaylistEntry(const qulonglong id, const QString &entryTitle,
                                 const PlayerUtils::PlaylistEntryType type)

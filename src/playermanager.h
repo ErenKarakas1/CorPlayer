@@ -1,7 +1,6 @@
 #ifndef PLAYERMANAGER_H
 #define PLAYERMANAGER_H
 
-#include <QObject>
 #include <QPersistentModelIndex>
 #include <QQmlEngine>
 

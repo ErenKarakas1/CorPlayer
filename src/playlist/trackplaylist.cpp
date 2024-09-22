@@ -287,7 +287,7 @@ void TrackPlaylist::enqueueRestoredEntries(const QVariantList &newEntries) {
 
     beginInsertRows(QModelIndex(), tp->m_fields.size(), tp->m_fields.size() + newEntries.size() - 1);
 
-    for (auto &oneData : newEntries) {
+    for (const auto &oneData : newEntries) {
         auto trackData = oneData.toStringList();
         if (trackData.size() != 7 && trackData.size() != 8) {
             continue;

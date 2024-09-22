@@ -1,7 +1,6 @@
 #ifndef TRACKPROGRESSWATCHER_H
 #define TRACKPROGRESSWATCHER_H
 
-#include <QObject>
 #include <QQmlEngine>
 
 class TrackProgressWatchdog : public QObject {
