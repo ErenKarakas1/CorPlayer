@@ -1,2 +1,2 @@
 CompileFlags:
-  Remove: [-mno-direct-extern-access]
+  Remove: [-mno-direct-extern-access, -fdeps-format=p1689r5, -fmodules-ts, -fmodule-mapper=*]

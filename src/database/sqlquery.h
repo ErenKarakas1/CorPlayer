@@ -7,7 +7,7 @@
 class SqlQuery : public QSqlQuery {
 public:
     explicit SqlQuery(const QSqlDatabase &db, const QString &statement);
-    void bindValue(const QString &placeholder, const QVariant &val);
+    void bindValue(const QString &placeholder, const QVariant &value);
 
     template <typename T>
     void bindNumericValue(const QString &placeholder, const T &value) {
@@ -16,7 +16,7 @@ public:
     }
 
     void bindStringValue(const QString &placeholder, const QString &value);
-    void bindUrlValue(const QString &placeholder, const QUrl &value);
+    void bindBoolValue(const QString &placeholder, bool value);
     [[nodiscard]] bool exec();
     [[nodiscard]] QString lastQuery() const;
 

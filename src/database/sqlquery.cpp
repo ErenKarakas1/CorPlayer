@@ -5,17 +5,17 @@ SqlQuery::SqlQuery(const QSqlDatabase &db, const QString &statement) : QSqlQuery
     prepare(statement);
 }
 
-void SqlQuery::bindValue(const QString &placeholder, const QVariant &val) {
-    m_boundValues.insert(placeholder, val);
-    QSqlQuery::bindValue(placeholder, val);
+void SqlQuery::bindValue(const QString &placeholder, const QVariant &value) {
+    m_boundValues.insert(placeholder, value);
+    QSqlQuery::bindValue(placeholder, value);
 }
 
 void SqlQuery::bindStringValue(const QString &placeholder, const QString &value) {
     bindValue(placeholder, value.isNull() ? QStringLiteral("") : value);
 }
 
-void SqlQuery::bindUrlValue(const QString &placeholder, const QUrl &value) {
-    bindValue(placeholder, value.isValid() ? value.toString(QUrl::FullyEncoded) : QStringLiteral(""));
+void SqlQuery::bindBoolValue(const QString &placeholder, const bool value) {
+    bindValue(placeholder, value ? 1 : 0);
 }
 
 bool SqlQuery::exec() {

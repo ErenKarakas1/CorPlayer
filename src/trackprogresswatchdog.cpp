@@ -14,11 +14,11 @@ QString TrackProgressWatchdog::progressDuration() const {
     return m_progressDuration;
 }
 
-void TrackProgressWatchdog::setPosition(int position) {
+void TrackProgressWatchdog::setPosition(const int position) {
     if (m_position == position) return;
 
     m_position = position;
-    QTime currentProgress = QTime::fromMSecsSinceStartOfDay(m_position);
+    const QTime currentProgress = QTime::fromMSecsSinceStartOfDay(m_position);
 
     if (currentProgress.hour() == 0) {
         m_progressDuration = currentProgress.toString(QStringLiteral("m:ss"));

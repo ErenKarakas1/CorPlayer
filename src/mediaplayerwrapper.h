@@ -51,16 +51,16 @@ Q_SIGNALS:
     void stopped();
 
 public Q_SLOTS:
-    void setSource(const QUrl &newSource);
-    void play();
-    void pause();
-    void stop();
-    void setVolume(qreal newVolume);
-    void setMuted(bool newIsMuted);
-    void setPosition(qint64 newPosition);
-    void saveUndoPosition(qint64 position);
-    void restoreUndoPosition();
-    void seek(qint64 newPosition);
+    void setSource(const QUrl &newSource) const;
+    void play() const;
+    void pause() const;
+    void stop() const;
+    void setVolume(qreal newVolume) const;
+    void setMuted(bool newIsMuted) const;
+    void setPosition(qint64 newPosition) const;
+    void saveUndoPosition(qint64 position) const;
+    void restoreUndoPosition() const;
+    void seek(qint64 newPosition) const;
 
 private Q_SLOTS:
     void trackStateChanged();
@@ -68,7 +68,7 @@ private Q_SLOTS:
     void trackMutedChanged();
 
 private:
-    void savePosition(qint64 position);
+    void savePosition(qint64 position) const;
     void trackStateSignalChanges(QMediaPlayer::PlaybackState newState);
     void trackStatusSignalChanges(QMediaPlayer::MediaStatus newStatus);
     void trackDurationSignalChanges(qint64 newDuration);

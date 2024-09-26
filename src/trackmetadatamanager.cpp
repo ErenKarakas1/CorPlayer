@@ -100,52 +100,52 @@ void TrackMetadataManager::setCurrentTrack(const QPersistentModelIndex &currentT
     updateCurrentTrackMetadata();
 }
 
-void TrackMetadataManager::setArtistRole(int newArtistRole) {
+void TrackMetadataManager::setArtistRole(const int newArtistRole) {
     m_artistRole = newArtistRole;
     Q_EMIT artistRoleChanged();
 }
 
-void TrackMetadataManager::setTitleRole(int newTitleRole) {
+void TrackMetadataManager::setTitleRole(const int newTitleRole) {
     m_titleRole = newTitleRole;
     Q_EMIT titleRoleChanged();
 }
 
-void TrackMetadataManager::setAlbumRole(int newAlbumRole) {
+void TrackMetadataManager::setAlbumRole(const int newAlbumRole) {
     m_albumRole = newAlbumRole;
     Q_EMIT albumRoleChanged();
 }
 
-void TrackMetadataManager::setAlbumArtistRole(int newAlbumArtistRole) {
+void TrackMetadataManager::setAlbumArtistRole(const int newAlbumArtistRole) {
     m_albumArtistRole = newAlbumArtistRole;
     Q_EMIT albumArtistRoleChanged();
 }
 
-void TrackMetadataManager::setFileNameRole(int newFileNameRole) {
+void TrackMetadataManager::setFileNameRole(const int newFileNameRole) {
     m_fileNameRole = newFileNameRole;
     Q_EMIT fileNameRoleChanged();
 }
 
-void TrackMetadataManager::setImageRole(int newImageRole) {
+void TrackMetadataManager::setImageRole(const int newImageRole) {
     m_imageRole = newImageRole;
     Q_EMIT imageRoleChanged();
 }
 
-void TrackMetadataManager::setDatabaseIdRole(int newDatabaseIdRole) {
+void TrackMetadataManager::setDatabaseIdRole(const int newDatabaseIdRole) {
     m_databaseIdRole = newDatabaseIdRole;
     Q_EMIT databaseIdRoleChanged();
 }
 
-void TrackMetadataManager::setTrackTypeRole(int newTrackTypeRole) {
+void TrackMetadataManager::setTrackTypeRole(const int newTrackTypeRole) {
     m_trackTypeRole = newTrackTypeRole;
     Q_EMIT trackTypeRoleChanged();
 }
 
-void TrackMetadataManager::setAlbumIdRole(int newAlbumIdRole) {
+void TrackMetadataManager::setAlbumIdRole(const int newAlbumIdRole) {
     m_albumIdRole = newAlbumIdRole;
     Q_EMIT albumIdRoleChanged();
 }
 
-void TrackMetadataManager::setIsValidRole(int newIsValidRole) {
+void TrackMetadataManager::setIsValidRole(const int newIsValidRole) {
     m_isValidRole = newIsValidRole;
     Q_EMIT isValidRoleChanged();
 }

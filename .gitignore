@@ -1,9 +1,6 @@
 build/
 perf/
 
-*.opus
-*.mp3
-
 # local settings
 .idea/
 .vscode/

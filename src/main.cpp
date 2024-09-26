@@ -26,5 +26,5 @@ int main(int argc, char *argv[]) {
 
     engine.loadFromModule(qmlUrl, "Main");
 
-    return app.exec();
+    return QApplication::exec();
 }

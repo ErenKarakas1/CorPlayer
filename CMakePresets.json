@@ -10,7 +10,7 @@
       "name": "base",
       "displayName": "base preset",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/../build/desktop-${presetName}/",
+      "binaryDir": "${sourceDir}/build/desktop-${presetName}/",
       "hidden": true
     },
     {

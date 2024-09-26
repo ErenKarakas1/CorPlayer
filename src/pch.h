@@ -6,6 +6,7 @@
 #include <QAbstractItemModel>
 #include <QCoreApplication>
 #include <QDebug>
+#include <QFileInfo>
 #include <QList>
 #include <QMetaObject>
 #include <QMetaType>

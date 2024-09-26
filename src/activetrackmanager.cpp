@@ -138,20 +138,20 @@ void ActiveTrackManager::restoreForUndoClearPlaylist() {
 void ActiveTrackManager::setPlaylistModel(QAbstractItemModel *newPlaylistModel) {
     if (m_playlistModel == newPlaylistModel) return;
 
-    if (m_playlistModel) {
+    if (m_playlistModel != nullptr) {
         disconnect(m_playlistModel, &QAbstractItemModel::dataChanged, this, &ActiveTrackManager::tracksDataChanged);
     }
 
     m_playlistModel = newPlaylistModel;
 
-    if (m_playlistModel) {
+    if (m_playlistModel != nullptr) {
         connect(m_playlistModel, &QAbstractItemModel::dataChanged, this, &ActiveTrackManager::tracksDataChanged);
     }
 
     Q_EMIT playlistModelChanged();
 }
 
-void ActiveTrackManager::setTitleRole(int newTitleRole) {
+void ActiveTrackManager::setTitleRole(const int newTitleRole) {
     if (m_titleRole == newTitleRole) return;
 
     m_titleRole = newTitleRole;
@@ -162,7 +162,7 @@ void ActiveTrackManager::setTitleRole(int newTitleRole) {
     }
 }
 
-void ActiveTrackManager::setArtistRole(int newArtistRole) {
+void ActiveTrackManager::setArtistRole(const int newArtistRole) {
     if (m_artistRole == newArtistRole) return;
 
     m_artistRole = newArtistRole;
@@ -173,7 +173,7 @@ void ActiveTrackManager::setArtistRole(int newArtistRole) {
     }
 }
 
-void ActiveTrackManager::setAlbumRole(int newAlbumRole) {
+void ActiveTrackManager::setAlbumRole(const int newAlbumRole) {
     if (m_albumRole == newAlbumRole) return;
 
     m_albumRole = newAlbumRole;
@@ -184,7 +184,7 @@ void ActiveTrackManager::setAlbumRole(int newAlbumRole) {
     }
 }
 
-void ActiveTrackManager::setUrlRole(int newUrlRole) {
+void ActiveTrackManager::setUrlRole(const int newUrlRole) {
     m_urlRole = newUrlRole;
     Q_EMIT urlRoleChanged();
 
@@ -192,14 +192,14 @@ void ActiveTrackManager::setUrlRole(int newUrlRole) {
     restorePreviousState();
 }
 
-void ActiveTrackManager::setIsPlayingRole(int newIsPlayingRole) {
+void ActiveTrackManager::setIsPlayingRole(const int newIsPlayingRole) {
     if (m_isPlayingRole == newIsPlayingRole) return;
 
     m_isPlayingRole = newIsPlayingRole;
     Q_EMIT isPlayingRoleChanged();
 }
 
-void ActiveTrackManager::setTrackStatus(QMediaPlayer::MediaStatus newTrackStatus) {
+void ActiveTrackManager::setTrackStatus(const QMediaPlayer::MediaStatus newTrackStatus) {
     if (m_trackStatus == newTrackStatus) return;
 
     m_trackStatus = newTrackStatus;
@@ -224,7 +224,7 @@ void ActiveTrackManager::setTrackStatus(QMediaPlayer::MediaStatus newTrackStatus
     }
 }
 
-void ActiveTrackManager::setTrackPlaybackState(QMediaPlayer::PlaybackState newTrackPlaybackState) {
+void ActiveTrackManager::setTrackPlaybackState(const QMediaPlayer::PlaybackState newTrackPlaybackState) {
     if (m_trackPlaybackState == newTrackPlaybackState) return;
 
     m_trackPlaybackState = newTrackPlaybackState;
@@ -239,18 +239,18 @@ void ActiveTrackManager::setTrackPlaybackState(QMediaPlayer::PlaybackState newTr
                 if (m_trackStatus == QMediaPlayer::EndOfMedia || m_trackStatus == QMediaPlayer::InvalidMedia) {
                     triggerSkipNextTrack();
                 }
-                if (m_playlistModel && m_currentTrack.isValid()) {
+                if (m_playlistModel != nullptr && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::NotPlaying, m_isPlayingRole);
                 }
                 break;
             case QMediaPlayer::PlayingState:
-                if (m_playlistModel && m_currentTrack.isValid()) {
+                if (m_playlistModel != nullptr && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::IsPlaying, m_isPlayingRole);
                     Q_EMIT trackStartedPlaying(m_currentTrack.data(m_urlRole).toUrl(), QDateTime::currentDateTime());
                 }
                 break;
             case QMediaPlayer::PausedState:
-                if (m_playlistModel && m_currentTrack.isValid()) {
+                if (m_playlistModel != nullptr && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::IsPaused, m_isPlayingRole);
                 }
                 break;
@@ -260,18 +260,18 @@ void ActiveTrackManager::setTrackPlaybackState(QMediaPlayer::PlaybackState newTr
             case QMediaPlayer::StoppedState:
                 notifyTrackSourceProperty();
                 m_skippingCurrentTrack = false;
-                if (m_playlistModel && m_previousTrack.isValid()) {
+                if (m_playlistModel != nullptr && m_previousTrack.isValid()) {
                     m_playlistModel->setData(m_previousTrack, TrackPlaylist::NotPlaying, m_isPlayingRole);
                 }
                 break;
             case QMediaPlayer::PlayingState:
-                if (m_playlistModel && m_currentTrack.isValid()) {
+                if (m_playlistModel != nullptr && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::IsPlaying, m_isPlayingRole);
                     Q_EMIT trackStartedPlaying(m_currentTrack.data(m_urlRole).toUrl(), QDateTime::currentDateTime());
                 }
                 break;
             case QMediaPlayer::PausedState:
-                if (m_playlistModel && m_currentTrack.isValid()) {
+                if (m_playlistModel != nullptr && m_currentTrack.isValid()) {
                     m_playlistModel->setData(m_currentTrack, TrackPlaylist::IsPaused, m_isPlayingRole);
                 }
                 break;
@@ -279,14 +279,14 @@ void ActiveTrackManager::setTrackPlaybackState(QMediaPlayer::PlaybackState newTr
     }
 }
 
-void ActiveTrackManager::setTrackError(QMediaPlayer::Error newTrackError) {
+void ActiveTrackManager::setTrackError(const QMediaPlayer::Error newTrackError) {
     if (m_trackError == newTrackError) return;
 
     m_trackError = newTrackError;
     Q_EMIT trackErrorChanged();
 
     if (m_trackError != QMediaPlayer::NoError) {
-        auto currentSource = trackSource();
+        const auto currentSource = trackSource();
 
         Q_EMIT sourceInError(currentSource, m_trackError);
 
@@ -349,21 +349,21 @@ void ActiveTrackManager::playPause() {
     }
 }
 
-void ActiveTrackManager::setTrackDuration(qint64 newTrackDuration) {
+void ActiveTrackManager::setTrackDuration(const qint64 newTrackDuration) {
     if (m_trackDuration == newTrackDuration) return;
 
     m_trackDuration = newTrackDuration;
     Q_EMIT trackDurationChanged();
 }
 
-void ActiveTrackManager::setTrackIsSeekable(bool newTrackIsSeekable) {
+void ActiveTrackManager::setTrackIsSeekable(const bool newTrackIsSeekable) {
     if (m_trackIsSeekable == newTrackIsSeekable) return;
 
     m_trackIsSeekable = newTrackIsSeekable;
     Q_EMIT trackIsSeekableChanged();
 }
 
-void ActiveTrackManager::setTrackPosition(qint64 newTrackPosition) {
+void ActiveTrackManager::setTrackPosition(const qint64 newTrackPosition) {
     if (m_trackPosition == newTrackPosition) return;
 
     m_trackPosition = newTrackPosition;
@@ -374,7 +374,7 @@ void ActiveTrackManager::setTrackPosition(qint64 newTrackPosition) {
     });
 }
 
-void ActiveTrackManager::setTrackControlPosition(int newTrackControlPosition) {
+void ActiveTrackManager::setTrackControlPosition(const int newTrackControlPosition) {
     Q_EMIT seek(newTrackControlPosition);
 }
 
@@ -389,7 +389,7 @@ void ActiveTrackManager::setPersistentState(const QVariantMap &newPersistentStat
     }
 }
 
-void ActiveTrackManager::trackSeek(int newPosition) {
+void ActiveTrackManager::trackSeek(const int newPosition) {
     Q_EMIT seek(newPosition);
 }
 
@@ -452,9 +452,9 @@ void ActiveTrackManager::triggerSkipNextTrack(PlayerUtils::SkipReason reason /*=
 void ActiveTrackManager::restorePreviousState() {
     if (m_persistentState.isEmpty()) return;
 
-    auto itTitle = m_persistentState.find(QStringLiteral("activeTrackTitle"));
-    auto itArtistName = m_persistentState.find(QStringLiteral("activeTrackArtist"));
-    auto itAlbumName = m_persistentState.find(QStringLiteral("activeTrackAlbum"));
+    const auto itTitle = m_persistentState.find(QStringLiteral("activeTrackTitle"));
+    const auto itArtistName = m_persistentState.find(QStringLiteral("activeTrackArtist"));
+    const auto itAlbumName = m_persistentState.find(QStringLiteral("activeTrackAlbum"));
 
     if (itTitle == m_persistentState.end() || itArtistName == m_persistentState.end() ||
         itAlbumName == m_persistentState.end()) {

@@ -80,11 +80,11 @@ bool MediaPlayerWrapper::isSeekable() const {
     return mp->m_player.isSeekable();
 }
 
-void MediaPlayerWrapper::setSource(const QUrl &source) {
-    mp->m_player.setSource(source);
+void MediaPlayerWrapper::setSource(const QUrl &newSource) const {
+    mp->m_player.setSource(newSource);
 }
 
-void MediaPlayerWrapper::play() {
+void MediaPlayerWrapper::play() const {
     if (mp->m_hasSavedPosition) {
         mp->m_player.setPosition(mp->m_savedPosition);
         mp->m_hasSavedPosition = false;
@@ -93,40 +93,40 @@ void MediaPlayerWrapper::play() {
     mp->m_player.play();
 }
 
-void MediaPlayerWrapper::pause() {
+void MediaPlayerWrapper::pause() const {
     mp->m_player.pause();
 }
 
-void MediaPlayerWrapper::stop() {
+void MediaPlayerWrapper::stop() const {
     mp->m_player.stop();
 }
 
-void MediaPlayerWrapper::setVolume(qreal volume) {
+void MediaPlayerWrapper::setVolume(const qreal newVolume) const {
     const qreal linearVolume =
-        QtAudio::convertVolume(volume / qreal(100.0), QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
+        QtAudio::convertVolume(newVolume / qreal(100.0), QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
 
     mp->m_audioOutput.setVolume(linearVolume);
 }
 
-void MediaPlayerWrapper::setMuted(bool isMuted) {
-    mp->m_audioOutput.setMuted(isMuted);
+void MediaPlayerWrapper::setMuted(const bool newIsMuted) const {
+    mp->m_audioOutput.setMuted(newIsMuted);
 }
 
-void MediaPlayerWrapper::setPosition(qint64 position) {
-    mp->m_player.setPosition(position);
+void MediaPlayerWrapper::setPosition(const qint64 newPosition) const {
+    mp->m_player.setPosition(newPosition);
 }
 
-void MediaPlayerWrapper::saveUndoPosition(qint64 position) {
+void MediaPlayerWrapper::saveUndoPosition(const qint64 position) const {
     mp->m_undoSavedPosition = position;
 }
 
-void MediaPlayerWrapper::restoreUndoPosition() {
+void MediaPlayerWrapper::restoreUndoPosition() const {
     mp->m_hasSavedPosition = true;
     mp->m_savedPosition = mp->m_undoSavedPosition;
 }
 
-void MediaPlayerWrapper::seek(qint64 position) {
-    mp->m_player.setPosition(position);
+void MediaPlayerWrapper::seek(const qint64 newPosition) const {
+    mp->m_player.setPosition(newPosition);
 }
 
 void MediaPlayerWrapper::trackStateChanged() {
@@ -155,7 +155,7 @@ void MediaPlayerWrapper::trackMutedChanged() {
     });
 }
 
-void MediaPlayerWrapper::savePosition(qint64 position) {
+void MediaPlayerWrapper::savePosition(const qint64 position) const {
     if (!mp->m_hasSavedPosition) {
         mp->m_hasSavedPosition = true;
         mp->m_savedPosition = position;

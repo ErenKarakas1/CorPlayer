@@ -147,7 +147,7 @@ private:
 
     bool m_isPlaying = false;
     bool m_skippingCurrentTrack = false;
-    int m_trackDuration = 0;
+    qint64 m_trackDuration = 0;
     bool m_trackIsSeekable = false;
     qint64 m_trackPosition = 0;
     QVariantMap m_persistentState;

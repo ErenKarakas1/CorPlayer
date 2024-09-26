@@ -68,7 +68,7 @@ public:
     [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
     [[nodiscard]] QModelIndex parent(const QModelIndex &child) const override;
     [[nodiscard]] bool hasChildren(const QModelIndex &parent) const override;
-    void setPlaylistModel(TrackPlaylist *PlaylistModel);
+    void setPlaylistModel(TrackPlaylist *playlistModel);
     [[nodiscard]] QPersistentModelIndex previousTrack() const;
     [[nodiscard]] QPersistentModelIndex currentTrack() const;
     [[nodiscard]] QPersistentModelIndex nextTrack() const;
@@ -82,7 +82,6 @@ public:
     [[nodiscard]] QVariantMap persistentState() const;
     [[nodiscard]] bool partiallyLoaded() const;
     [[nodiscard]] bool canOpenLoadedPlaylist() const;
-    int m_seekToBeginningDelay = 2000;
 
 public Q_SLOTS:
     void enqueue(const QUrl &entryUrl, PlayerUtils::PlaylistEnqueueMode enqueueMode,
@@ -174,7 +173,7 @@ private:
     void loadLocalFile(MetadataFields::EntryMetadataList &newTracks, QSet<QString> &processedFiles,
                        const QFileInfo &fileInfo);
 
-    void loadLocalPlaylist(MetadataFields::EntryMetadataList &newTracks, QSet<QString> &processedUFiles,
+    void loadLocalPlaylist(MetadataFields::EntryMetadataList &newTracks, QSet<QString> &processedFiles,
                            const QUrl &fileName, const QByteArray &fileContent);
 
     void loadLocalDirectory(MetadataFields::EntryMetadataList &newTracks, QSet<QString> &processedFiles,
@@ -182,6 +181,7 @@ private:
 
     int filterLocalPlaylist(QList<QUrl> &result, const QUrl &playlistUrl);
 
+    int m_seekToBeginningDelay = 2000;
     std::unique_ptr<TrackPlaylistProxyModelPrivate> tpp;
 };
 
