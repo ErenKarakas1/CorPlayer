@@ -1,11 +1,13 @@
 #include "filescanner.h"
 
+#include "playerutils.h"
 #include "taglib/tagreader.h"
 #include "taglib/tracktags.h"
 
-#include <QFileInfo>
 #include <QLatin1StringView>
 #include <QMimeDatabase>
+
+#include <algorithm>
 
 class FileScannerPrivate {
 public:
@@ -17,12 +19,12 @@ FileScanner::FileScanner() : fs(std::make_unique<FileScannerPrivate>()) {}
 
 FileScanner::~FileScanner() = default;
 
-MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file) {
+MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file) const {
     const QFileInfo fileInfo(file.toLocalFile());
-    return FileScanner::scanFile(file, fileInfo);
+    return scanFile(file, fileInfo);
 }
 
-MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file, const QFileInfo &fileInfo) {
+MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file, const QFileInfo &fileInfo) const {
     MetadataFields::TrackMetadataField newTrack;
 
     if (!file.isLocalFile()) {
@@ -41,30 +43,50 @@ MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file, const
         return newTrack;
     }
 
-    TrackTags tags = TrackTags(localFile);
+    TrackTags tags(localFile);
     fs->m_tagReader.readMetadata(localFile, tags);
 
-    auto rangeBegin = tags.roleMapping().constKeyValueBegin();
+    const auto roleMapping = tags.roleMapping();
+    auto rangeBegin = roleMapping.constKeyValueBegin();
+    QVariant value;
 
-    while (rangeBegin != tags.roleMapping().constKeyValueEnd()) {
-        const auto &[role, value] = *rangeBegin;
-        newTrack[role] = value;
-        ++rangeBegin;
+    while (rangeBegin != roleMapping.constKeyValueEnd()) {
+        const auto key = rangeBegin->first;
+        const auto duplicateRangeEnd =
+            std::ranges::find_if(rangeBegin, roleMapping.constKeyValueEnd(), [key](const auto &pair) {
+                return pair.first != key;
+            });
+
+        const auto duplicateCount = std::ranges::distance(rangeBegin, duplicateRangeEnd);
+
+        if (duplicateCount > 1) {
+            QStringList values;
+            values.reserve(static_cast<int>(duplicateCount));
+
+            std::ranges::for_each(rangeBegin, duplicateRangeEnd, [&values](const auto &pair) {
+                values.append(pair.second.toString());
+            });
+
+            value = QLocale().createSeparatedList(values);
+        } else {
+            value = rangeBegin->second;
+        }
+
+        if (key == MetadataFields::DurationRole) {
+            newTrack.insert(key,
+                            QTime::fromMSecsSinceStartOfDay(static_cast<int>(1000 * rangeBegin->second.toDouble())));
+        } else {
+            newTrack.insert(key, value);
+        }
+
+        rangeBegin = duplicateRangeEnd;
     }
 
-    if (tryExtractEmbeddedCoverImage(localFile)) {
-        newTrack[MetadataFields::HasEmbeddedCover] = true;
+    if (newTrack[MetadataFields::HasEmbeddedCover].toBool()) {
         newTrack[MetadataFields::ImageUrlRole] = QUrl(QLatin1StringView("image://cover/") + localFile);
-    } else {
-        newTrack[MetadataFields::HasEmbeddedCover] = false;
     }
+
+    newTrack[MetadataFields::HashRole] = newTrack.generateHash();
 
     return newTrack;
-}
-
-bool FileScanner::tryExtractEmbeddedCoverImage(const QString &localFile) {
-    TrackTags tags = TrackTags(localFile);
-    fs->m_tagReader.extractCoverImage(localFile, tags);
-
-    return !tags.coverImage().isEmpty();
 }

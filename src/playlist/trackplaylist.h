@@ -36,6 +36,7 @@ public:
         TrackNumberRole,
         DiscNumberRole,
         GenreRole,
+        PerformerRole,
         LyricistRole,
         ComposerRole,
         CommentRole,
@@ -44,6 +45,7 @@ public:
         BitRateRole,
         SampleRateRole,
         ResourceRole,
+        FileTypeRole,
         IdRole,
         ParentIdRole,
         DatabaseIdRole,
@@ -64,6 +66,7 @@ public:
         IsPlayingRole,
         AlbumSectionRole,
         MetadataModifiableRole,
+        HashRole,
     };
 
     Q_ENUM(ColumnRoles)

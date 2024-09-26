@@ -36,6 +36,7 @@ public:
         TrackNumberRole,
         DiscNumberRole,
         GenreRole,
+        PerformerRole,
         LyricistRole,
         ComposerRole,
         CommentRole,
@@ -44,6 +45,7 @@ public:
         BitRateRole,
         SampleRateRole,
         ResourceRole,
+        FileTypeRole,
         IdRole,
         ParentIdRole,
         DatabaseIdRole,
@@ -61,6 +63,7 @@ public:
         FilePathRole,
         HasChildrenRole,
         MultipleImageUrlsRole,
+        HashRole,
     };
 
     Q_ENUM(ColumnsRoles)
@@ -94,9 +97,9 @@ public:
 
         TrackMetadataField(bool aValid, QString aId, QString aParentId, QString aTitle, QString aArtist,
                            QString aAlbumName, QString aAlbumArtist, int aTrackNumber, int aDiscNumber, QTime aDuration,
-                           QUrl aResourceURI, const QDateTime &fileModificationTime, QUrl aAlbumCover,
-                           bool aIsSingleDiscAlbum, QString aGenre, QString aComposer, QString aLyricist,
-                           bool aHasEmbeddedCover)
+                           QUrl aResourceURI, QString aFileType, const QDateTime &fileModificationTime,
+                           QUrl aAlbumCover, bool aIsSingleDiscAlbum, QString aGenre, QString aPerformer,
+                           QString aComposer, QString aLyricist, bool aHasEmbeddedCover, QString aHash)
             : MusicMetadataField({
                   {key_type::TitleRole, std::move(aTitle)},
                   {key_type::AlbumRole, std::move(aAlbumName)},
@@ -108,13 +111,16 @@ public:
                   {key_type::DiscNumberRole, aDiscNumber},
                   {key_type::DurationRole, aDuration},
                   {key_type::ResourceRole, std::move(aResourceURI)},
+                  {key_type::FileTypeRole, std::move(aFileType)},
                   {key_type::FileModificationTime, fileModificationTime},
                   {key_type::ImageUrlRole, std::move(aAlbumCover)},
                   {key_type::IsSingleDiscAlbumRole, aIsSingleDiscAlbum},
                   {key_type::GenreRole, std::move(aGenre)},
+                  {key_type::PerformerRole, std::move(aPerformer)},
                   {key_type::ComposerRole, std::move(aComposer)},
                   {key_type::LyricistRole, std::move(aLyricist)},
                   {key_type::HasEmbeddedCover, aHasEmbeddedCover},
+                  {key_type::HashRole, std::move(aHash)},
               }) {
             Q_UNUSED(aValid)
         }
@@ -127,7 +133,7 @@ public:
             return value(TitleRole).toString();
         }
 
-        [[nodiscard]] bool hasRole(ColumnsRoles role) const {
+        [[nodiscard]] bool hasRole(const ColumnsRoles role) const {
             return contains(role);
         }
 
@@ -152,12 +158,15 @@ public:
         }
 
         [[nodiscard]] QTime duration() const {
-            const int durationSecs = value(DurationRole).toInt();
-            return QTime(0, 0, 0).addSecs(durationSecs);
+            return value(DurationRole).toTime();
         }
 
         [[nodiscard]] QUrl resourceURI() const {
             return value(ResourceRole).toUrl();
+        }
+
+        [[nodiscard]] QString fileType() const {
+            return value(FileTypeRole).toString();
         }
 
         [[nodiscard]] QUrl albumCover() const {
@@ -170,6 +179,10 @@ public:
 
         [[nodiscard]] QString genre() const {
             return value(GenreRole).toString();
+        }
+
+        [[nodiscard]] QString performer() const {
+            return value(PerformerRole).toString();
         }
 
         [[nodiscard]] QString composer() const {
@@ -206,6 +219,15 @@ public:
 
         [[nodiscard]] bool hasEmbeddedCover() const {
             return value(HasEmbeddedCover).toBool();
+        }
+
+        [[nodiscard]] QString hash() const {
+            return value(HashRole).toString();
+        }
+
+        [[nodiscard]] QString generateHash() const {
+            return PlayerUtils::calculateTrackHash(title(), resourceURI().toString(), fileType(), artist(), album(),
+                                                   albumArtist(), genre());
         }
 
         [[nodiscard]] QDateTime fileModificationTime() const {

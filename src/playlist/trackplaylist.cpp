@@ -43,6 +43,7 @@ QHash<int, QByteArray> TrackPlaylist::roleNames() const {
     roles[static_cast<int>(ColumnRoles::TrackNumberRole)] = "trackNumber";
     roles[static_cast<int>(ColumnRoles::DiscNumberRole)] = "discNumber";
     roles[static_cast<int>(ColumnRoles::GenreRole)] = "genre";
+    roles[static_cast<int>(ColumnRoles::PerformerRole)] = "performer";
     roles[static_cast<int>(ColumnRoles::LyricistRole)] = "lyricist";
     roles[static_cast<int>(ColumnRoles::ComposerRole)] = "composer";
     roles[static_cast<int>(ColumnRoles::CommentRole)] = "comment";
@@ -62,6 +63,7 @@ QHash<int, QByteArray> TrackPlaylist::roleNames() const {
     roles[static_cast<int>(ColumnRoles::AlbumSectionRole)] = "albumSection";
     roles[static_cast<int>(ColumnRoles::ElementTypeRole)] = "entryType";
     roles[static_cast<int>(ColumnRoles::MetadataModifiableRole)] = "metadataModifiableRole";
+    roles[static_cast<int>(ColumnRoles::HashRole)] = "hash";
 
     return roles;
 }
@@ -88,7 +90,7 @@ QVariant TrackPlaylist::data(const QModelIndex &index, int role) const {
                 result = tp->m_trackFields[index.row()].duration();
                 break;
             case ColumnRoles::StringDurationRole: {
-                QTime trackDuration =
+                const QTime trackDuration =
                     tp->m_trackFields[index.row()][TrackMetadataField::key_type::DurationRole].toTime();
 
                 if (trackDuration.hour() == 0) {
@@ -214,7 +216,7 @@ bool TrackPlaylist::setData(const QModelIndex &index, const QVariant &value, int
     switch (convertedRole) {
         case ColumnRoles::IsPlayingRole: {
             modelModified = true;
-            auto newState = static_cast<PlayState>(value.toInt());
+            const auto newState = static_cast<PlayState>(value.toInt());
             tp->m_fields[index.row()].m_isPlaying = newState;
             Q_EMIT dataChanged(index, index, {role});
 
@@ -243,7 +245,7 @@ bool TrackPlaylist::setData(const QModelIndex &index, const QVariant &value, int
     return modelModified;
 }
 
-bool TrackPlaylist::removeRows(int row, int count, const QModelIndex &parent) {
+bool TrackPlaylist::removeRows(const int row, const int count, const QModelIndex &parent) {
     beginRemoveRows(parent, row, row + count - 1);
 
     for (int i = row, cpt = 0; cpt < count; ++i, ++cpt) {
@@ -255,8 +257,8 @@ bool TrackPlaylist::removeRows(int row, int count, const QModelIndex &parent) {
     return true;
 }
 
-bool TrackPlaylist::moveRows(const QModelIndex &sourceParent, int sourceRow, int count,
-                             const QModelIndex &destinationParent, int destinationChild) {
+bool TrackPlaylist::moveRows(const QModelIndex &sourceParent, const int sourceRow, const int count,
+                             const QModelIndex &destinationParent, const int destinationChild) {
     if (sourceParent != destinationParent) {
         return false;
     }
@@ -316,7 +318,7 @@ void TrackPlaylist::enqueueRestoredEntries(const QVariantList &newEntries) {
             auto entryURL = newEntry.m_trackUrl.toUrl();
             if (entryURL.isLocalFile()) {
                 auto entryString = entryURL.toLocalFile();
-                QFileInfo newTrackFile(entryString);
+                const QFileInfo newTrackFile(entryString);
                 if (newTrackFile.exists()) {
                     tp->m_fields.last().m_isValid = true;
                     Q_EMIT addNewEntry(0, entryString, PlayerUtils::FileName);
@@ -337,11 +339,11 @@ void TrackPlaylist::enqueueRestoredEntries(const QVariantList &newEntries) {
     endInsertRows();
 }
 
-void TrackPlaylist::enqueueOneEntry(const MetadataFields::EntryMetadata &entryData, int insertAt) {
+void TrackPlaylist::enqueueOneEntry(const MetadataFields::EntryMetadata &entryData, const int insertAt) {
     enqueueMultipleEntries({entryData}, insertAt);
 }
 
-void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataList &entriesData, int insertAt) {
+void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataList &entriesData, const int insertAt) {
     const int validEntries =
         std::accumulate(entriesData.cbegin(), entriesData.cend(), 0, [](const int validEntries, const auto &entryData) {
             return entryData.isValid() ? validEntries + 1 : validEntries;
@@ -451,8 +453,8 @@ QVariantList TrackPlaylist::getEntriesForRestore() const {
     return result;
 }
 
-void TrackPlaylist::tracksListAdded(qulonglong newDatabaseId, const QString &entryTitle,
-                                    PlayerUtils::PlaylistEntryType databaseIdType,
+void TrackPlaylist::tracksListAdded(const qulonglong newDatabaseId, const QString &entryTitle,
+                                    const PlayerUtils::PlaylistEntryType databaseIdType,
                                     const ListTrackMetadataField &tracks) {
     if (tracks.isEmpty()) {
         return;
@@ -570,7 +572,7 @@ void TrackPlaylist::trackChanged(const TrackMetadataField &track) {
     }
 }
 
-void TrackPlaylist::trackRemoved(qulonglong trackId) {
+void TrackPlaylist::trackRemoved(const qulonglong trackId) {
     for (int i = 0; i < tp->m_fields.size(); ++i) {
         auto &oneEntry = tp->m_fields[i];
 
@@ -589,7 +591,7 @@ void TrackPlaylist::trackRemoved(qulonglong trackId) {
     }
 }
 
-void TrackPlaylist::trackInError(const QUrl &sourceInError, QMediaPlayer::Error playerError) {
+void TrackPlaylist::trackInError(const QUrl &sourceInError, const QMediaPlayer::Error playerError) {
     Q_UNUSED(playerError)
 
     for (int i = 0; i < tp->m_fields.size(); ++i) {

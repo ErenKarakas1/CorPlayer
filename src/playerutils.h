@@ -1,8 +1,11 @@
 #ifndef PLAYERUTILS_H
 #define PLAYERUTILS_H
 
+#include <QCryptographicHash>
 #include <QMimeType>
 #include <QQmlEngine>
+
+#include <concepts>
 
 namespace PlayerUtils {
 Q_NAMESPACE
@@ -60,6 +63,21 @@ enum FilterType {
 Q_ENUM_NS(FilterType)
 
 bool isPlaylist(const QMimeType &mimeType);
+
+template <typename T>
+concept HasToUtf8 = requires(T t) {
+    { t.toUtf8() } -> std::convertible_to<QByteArray>;
+};
+
+template <typename... Columns>
+QString calculateTrackHash(const Columns &...columns) {
+    static_assert((HasToUtf8<Columns> && ...), "All columns must have a toUtf8() method returning QByteArray");
+
+    QCryptographicHash hash{QCryptographicHash::Algorithm::Md5};
+    (hash.addData(columns.toUtf8()), ...);
+    return QString::fromUtf8(hash.result().toHex());
+}
+
 } // namespace PlayerUtils
 
 #endif // PLAYERUTILS_H

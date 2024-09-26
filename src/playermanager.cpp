@@ -20,8 +20,8 @@ bool PlayerManager::musicPlaying() const {
 
 void PlayerManager::playerPausedOrStopped() {
     if (m_isInPlayingState) {
-        auto oldPreviousTrackIsEnabled = skipBackwardControlEnabled();
-        auto oldNextTrackIsEnabled = skipForwardControlEnabled();
+        const auto oldPreviousTrackIsEnabled = skipBackwardControlEnabled();
+        const auto oldNextTrackIsEnabled = skipForwardControlEnabled();
 
         m_isInPlayingState = false;
         Q_EMIT musicPlayingChanged();
@@ -40,8 +40,8 @@ void PlayerManager::playerPausedOrStopped() {
 
 void PlayerManager::playerPlaying() {
     if (!m_isInPlayingState) {
-        auto oldPreviousTrackIsEnabled = skipBackwardControlEnabled();
-        auto oldNextTrackIsEnabled = skipForwardControlEnabled();
+        const auto oldPreviousTrackIsEnabled = skipBackwardControlEnabled();
+        const auto oldNextTrackIsEnabled = skipForwardControlEnabled();
 
         m_isInPlayingState = true;
         Q_EMIT musicPlayingChanged();

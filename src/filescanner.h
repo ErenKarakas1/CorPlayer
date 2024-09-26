@@ -3,19 +3,20 @@
 
 #include "metadatafields.h"
 
+#include <QFileInfo>
+
 class QUrl;
-class QFileInfo;
 class FileScannerPrivate;
 
 class FileScanner {
 public:
     FileScanner();
     ~FileScanner();
-    MetadataFields::TrackMetadataField scanFile(const QUrl &file);
-    MetadataFields::TrackMetadataField scanFile(const QUrl &file, const QFileInfo &fileInfo);
+    [[nodiscard]] MetadataFields::TrackMetadataField scanFile(const QUrl &file) const;
+    [[nodiscard]] MetadataFields::TrackMetadataField scanFile(const QUrl &file, const QFileInfo &fileInfo) const;
 
 private:
-    bool tryExtractEmbeddedCoverImage(const QString &localFile);
+    [[nodiscard]] bool tryExtractEmbeddedCoverImage(const QString &localFile) const;
     std::unique_ptr<FileScannerPrivate> fs;
 };
 
