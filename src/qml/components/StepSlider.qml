@@ -6,13 +6,13 @@ Slider {
 
     property real keyStepSize: stepSize
     property real wheelStepSize: stepSize
-
+    
     readonly property real __keyStepSize: keyStepSize === null ? 0 : keyStepSize
     readonly property real __wheelStepSize: wheelStepSize === null ? 0 : wheelStepSize
 
     function __move(step: real) {
-        value = Math.max(from, Math.min(value + step, to))
-        moved()
+        value = Math.max(from, Math.min(value + step, to));
+        moved();
     }
 
     Accessible.onDecreaseAction: __move(-__keyStepSize)
@@ -23,7 +23,9 @@ Slider {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.NoButton
-        onWheel: wheel => slider.__move(slider.__wheelStepSize * (wheel.angleDelta.y > 0 ? 1 : -1))
+        onWheel: (wheel) => {
+            return slider.__move(slider.__wheelStepSize * (wheel.angleDelta.y > 0 ? 1 : -1));
+        }
     }
 
     background: Rectangle {

@@ -26,7 +26,7 @@ int TrackPlaylist::rowCount(const QModelIndex &parent) const {
         return 0;
     }
 
-    return tp->m_fields.size();
+    return static_cast<int>(tp->m_fields.size());
 }
 
 QHash<int, QByteArray> TrackPlaylist::roleNames() const {
@@ -367,7 +367,7 @@ void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataLi
         const auto trackUrl =
             entryData.url.isValid() ? entryData.url : entryData.musicMetadata[MetadataFields::ResourceRole].toUrl();
 
-        if (!entryData.musicMetadata.databaseId() && trackUrl.isValid()) {
+        if (!entryData.musicMetadata.hasDatabaseId() && trackUrl.isValid()) {
             auto newEntry = TrackPlaylistEntry{trackUrl};
             newEntry.m_entryType = PlayerUtils::FileName;
 
@@ -402,11 +402,9 @@ void TrackPlaylist::enqueueMultipleEntries(const MetadataFields::EntryMetadataLi
 }
 
 void TrackPlaylist::clearPlaylist() {
-    if (tp->m_fields.isEmpty()) {
-        return;
-    }
+    if (tp->m_fields.isEmpty()) return;
 
-    beginRemoveRows({}, 0, tp->m_fields.count() - 1);
+    beginRemoveRows({}, 0, static_cast<int>(tp->m_fields.count()) - 1);
 
     tp->m_fields.clear();
     tp->m_trackFields.clear();
@@ -479,7 +477,7 @@ void TrackPlaylist::tracksListAdded(const qulonglong newDatabaseId, const QStrin
         tp->m_trackFields.removeAt(playListIndex);
         endRemoveRows();
 
-        beginInsertRows(QModelIndex(), playListIndex, playListIndex - 1 + tracks.size());
+        beginInsertRows(QModelIndex(), playListIndex, playListIndex - 1 + static_cast<int>(tracks.size()));
 
         for (int trackIndex = 0; trackIndex < tracks.size(); ++trackIndex) {
             auto newEntry = TrackPlaylistEntry{tracks[trackIndex]};

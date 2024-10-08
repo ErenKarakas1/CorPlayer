@@ -204,10 +204,10 @@ bool TagReader::readGenericField(const TagLib::PropertyMap &properties, const st
     return false;
 }
 
-void TagReader::readID3v2Tags(const TagLib::ID3v2::Tag *id3Tags, TrackTags &result) const {
+void TagReader::readID3v2Tags(const TagLib::ID3v2::Tag *id3Tags, const TrackTags &result) const {
     if (id3Tags->isEmpty()) return;
 
-    const auto map = id3Tags->frameListMap();
+    const auto &map = id3Tags->frameListMap();
 
     if (map.contains(ID3v2_DiscNumber)) {
         const auto discNumber = map[ID3v2_DiscNumber].front()->toString().toInt();

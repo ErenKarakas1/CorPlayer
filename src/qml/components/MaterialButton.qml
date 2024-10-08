@@ -5,9 +5,9 @@ import QtQuick.Controls.Material
 Button {
     id: root
 
-    Material.theme: Material.Dark
-
     readonly property int diameter: parent.height
+
+    Material.theme: Material.Dark
     height: diameter
     width: diameter
 

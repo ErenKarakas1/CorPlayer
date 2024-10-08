@@ -1,8 +1,9 @@
-import QtQuick
-import QtQuick.Layouts
-import QtQuick.Controls
-import CorPlayer
 import "../.."
+import CorPlayer
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
 GridLayout {
     id: root
@@ -32,15 +33,16 @@ GridLayout {
     }
 
     Connections {
-        target: CorPlayer.trackPlaylistProxyModel
-
         function onClearPlaylistPlayer() {
             slider.value = 0;
         }
+
+        target: CorPlayer.trackPlaylistProxyModel
     }
 
     TextMetrics {
         id: durationTextMetrics
+
         text: "00:00:00"
     }
 
@@ -56,12 +58,12 @@ GridLayout {
         Layout.fillHeight: true
         Layout.preferredWidth: (durationTextMetrics.boundingRect.width - durationTextMetrics.boundingRect.x)
         Layout.rightMargin: !root.labelsInline ? 0 : 5
-
         horizontalAlignment: root.labelsInline ? Text.AlignRight : Text.AlignLeft
         verticalAlignment: Text.AlignVCenter
 
         TrackProgressWatchdog {
             id: timeWatchdog
+
             position: root.position
         }
     }
@@ -109,6 +111,7 @@ GridLayout {
 
         TrackProgressWatchdog {
             id: durationWatchdog
+
             position: root.duration
         }
     }

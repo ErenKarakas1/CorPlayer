@@ -100,7 +100,7 @@ int TrackPlaylistProxyModel::mapRowToSource(const int proxyRow) const {
 
 int TrackPlaylistProxyModel::mapRowFromSource(const int sourceRow) const {
     if (tpp->m_shuffleMode != NoShuffle) {
-        return tpp->m_randomMapping.indexOf(sourceRow);
+        return static_cast<int>(tpp->m_randomMapping.indexOf(sourceRow));
     }
     return sourceRow;
 }
@@ -110,7 +110,7 @@ int TrackPlaylistProxyModel::rowCount(const QModelIndex &parent) const {
         if (parent.isValid()) {
             return 0;
         }
-        return tpp->m_randomMapping.count();
+        return static_cast<int>(tpp->m_randomMapping.count());
     }
     return tpp->m_playlistModel->rowCount(parent);
 }

@@ -103,7 +103,7 @@ void MediaPlayerWrapper::stop() const {
 
 void MediaPlayerWrapper::setVolume(const qreal newVolume) const {
     const qreal linearVolume =
-        QtAudio::convertVolume(newVolume / qreal(100.0), QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
+        QtAudio::convertVolume(newVolume / static_cast<qreal>(100.0), QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
 
     mp->m_audioOutput.setVolume(linearVolume);
 }
