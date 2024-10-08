@@ -14,7 +14,7 @@ public:
 
 private:
     QSqlDatabase m_db;
-    bool m_commited;
+    bool m_commited{false};
 };
 
 #endif // SQLTRANSACTION_H

@@ -11,13 +11,13 @@
 #include <memory>
 
 class QAction;
+class CorManager;
 class TrackPlaylist;
 class TrackPlaylistProxyModel;
 class MediaPlayerWrapper;
 class ActiveTrackManager;
 class PlayerManager;
 class TrackMetadataManager;
-class TracksWatchdog;
 class QAbstractItemModel;
 class CorPlayerPrivate;
 
@@ -27,6 +27,7 @@ class CorPlayer : public QObject {
     QML_SINGLETON
 
     // clang-format off
+    Q_PROPERTY(CorManager *corManager READ corManager NOTIFY corManagerChanged)
     Q_PROPERTY(TrackPlaylist *trackPlaylist READ trackPlaylist NOTIFY trackPlaylistChanged)
 
     Q_PROPERTY(TrackPlaylistProxyModel *trackPlaylistProxyModel
@@ -42,6 +43,7 @@ public:
     explicit CorPlayer(QObject *parent = nullptr);
     ~CorPlayer() override;
 
+    [[nodiscard]] CorManager *corManager() const;
     [[nodiscard]] TrackPlaylist *trackPlaylist() const;
     [[nodiscard]] TrackPlaylistProxyModel *trackPlaylistProxyModel() const;
     [[nodiscard]] MediaPlayerWrapper *mediaPlayer() const;
@@ -50,6 +52,7 @@ public:
     [[nodiscard]] TrackMetadataManager *metadataManager() const;
 
 Q_SIGNALS:
+    void corManagerChanged();
     void trackPlaylistChanged();
     void trackPlaylistProxyModelChanged();
     void mediaPlayerChanged();
@@ -57,7 +60,7 @@ Q_SIGNALS:
     void playerManagerChanged();
     void metadataManagerChanged();
 
-    void enqueue(const MetadataFields::EntryMetadataList &tracks, PlayerUtils::PlaylistEnqueueMode enqueueMode,
+    void enqueue(const MetadataFields::EntryMetadataList &newEntries, PlayerUtils::PlaylistEnqueueMode enqueueMode,
                  PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
 
     void initializationDone();

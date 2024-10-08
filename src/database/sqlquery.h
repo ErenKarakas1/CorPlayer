@@ -2,7 +2,6 @@
 #define SQLQUERY_H
 
 #include <QSqlQuery>
-#include <QUrl>
 
 class SqlQuery : public QSqlQuery {
 public:

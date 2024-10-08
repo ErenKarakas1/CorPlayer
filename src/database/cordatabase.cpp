@@ -1,6 +1,6 @@
 #include "cordatabase.h"
 
-#include <QDebug>
+#include <QSqlQuery>
 
 CorDatabase::CorDatabase(const QString &databaseFileName, const QString &connectionName) : m_conName{connectionName} {
     auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connectionName);
@@ -19,12 +19,8 @@ CorDatabase::CorDatabase(const CorDatabase &other, const QString &connectionName
 }
 
 CorDatabase::~CorDatabase() {
-    qDebug() << "CorDatabase::Database connection closed" << m_conName;
-
     close();
     QSqlDatabase::removeDatabase(m_conName);
-
-    qDebug() << "CorDatabase::Database connection removed" << m_conName;
 }
 
 QString CorDatabase::name() const {
@@ -32,7 +28,13 @@ QString CorDatabase::name() const {
 }
 
 bool CorDatabase::open() const {
-    return db().open();
+    auto db = this->db();
+
+    if (!db.isOpen()) {
+        return db.open();
+    }
+
+    return true;
 }
 
 void CorDatabase::close() const {

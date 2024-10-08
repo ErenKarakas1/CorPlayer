@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.30)
 project(CorPlayer VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -39,6 +39,18 @@ add_compile_options(
     -Woverloaded-virtual
     -Wold-style-cast
     -Winvalid-pch
+    -Wnon-virtual-dtor
+    -Wconversion
+    -Wsign-conversion
+    -Wmisleading-indentation
+    -Wduplicated-cond
+    -Wduplicated-branches
+    -Wlogical-op
+    -Wnull-dereference
+    -Wdouble-promotion
+    -Wuseless-cast
+    -Wformat=2
+    -Wimplicit-fallthrough
     -fpch-preprocess
 )
 
@@ -54,7 +66,8 @@ add_definitions(
     -DQT_NO_FOREACH
     -DQT_NO_KEYWORDS
     -DQT_NO_SIGNALS_SLOTS_KEYWORDS
-    -DQT_DISABLE_DEPRECATED_BEFORE=0x060200
+    -DQT_DISABLE_DEPRECATED_UP_TO=0x060700
+    -DQT_ENABLE_STRICT_MODE_UP_TO=0x060700
 )
 
 set(PROJECT_SOURCES ${PROJECT_SOURCES} src/main.cpp)

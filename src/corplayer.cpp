@@ -1,13 +1,15 @@
 #include "corplayer.h"
 
+#include "cormanager.h"
+
 #include "playlist/trackplaylist.h"
 #include "playlist/trackplaylistproxymodel.h"
 
 #include "activetrackmanager.h"
+#include "databasemanager.h"
 #include "mediaplayerwrapper.h"
 #include "playermanager.h"
 #include "trackmetadatamanager.h"
-#include "trackswatchdog.h"
 
 #include <QDebug>
 #include <QDialog>
@@ -16,9 +18,7 @@
 #include <QKeyEvent>
 #include <QMimeDatabase>
 #include <QMimeType>
-#include <QPointer>
 #include <QQmlComponent>
-#include <QQmlEngine>
 #include <QUrl>
 
 class CorPlayerPrivate {
@@ -27,13 +27,13 @@ public:
         Q_UNUSED(parent);
     }
 
+    std::unique_ptr<CorManager> m_corManager;
     std::unique_ptr<TrackPlaylist> m_trackPlaylist;
     std::unique_ptr<TrackPlaylistProxyModel> m_trackPlaylistProxyModel;
     std::unique_ptr<MediaPlayerWrapper> m_mediaPlayer;
     std::unique_ptr<ActiveTrackManager> m_trackManager;
     std::unique_ptr<PlayerManager> m_playerManager;
     std::unique_ptr<TrackMetadataManager> m_metadataManager;
-    std::unique_ptr<TracksWatchdog> m_listener;
 };
 
 CorPlayer::CorPlayer(QObject *parent) : QObject(parent), capp(std::make_unique<CorPlayerPrivate>(this)) {}
@@ -51,7 +51,6 @@ bool CorPlayer::openFiles(const QList<QUrl> &files, const QString &workingDirect
     for (const auto &file : files) {
         const QMimeType mime = mimeDB.mimeTypeForUrl(file);
         if (PlayerUtils::isPlaylist(mime)) {
-            qDebug() << "openFiles: loading playlist: " << file;
             capp->m_trackPlaylistProxyModel->loadPlaylist(file);
         } else if (mime.name().startsWith(QStringLiteral("audio/"))) {
             tracks.push_back(MetadataFields::EntryMetadata{{{MetadataFields::ElementTypeRole, PlayerUtils::FileName},
@@ -61,7 +60,6 @@ bool CorPlayer::openFiles(const QList<QUrl> &files, const QString &workingDirect
         }
     }
 
-    qDebug() << "openFiles: " << tracks.count() << " tracks before sanitize";
     const auto targetFiles = sanitizePlaylist(tracks, workingDirectory);
 
     if (!targetFiles.isEmpty()) {
@@ -69,8 +67,6 @@ bool CorPlayer::openFiles(const QList<QUrl> &files, const QString &workingDirect
                        PlayerUtils::PlaylistEnqueueTriggerPlay::TriggerPlay);
     }
 
-    qDebug() << "openFiles: " << tracks.count() << " tracks loaded";
-    qDebug() << "openFiles: " << targetFiles.count() << " target files loaded";
     return tracks.count() == targetFiles.count();
 }
 
@@ -82,12 +78,21 @@ void CorPlayer::initialize() {
 }
 
 void CorPlayer::initializeModels() {
+    capp->m_corManager = std::make_unique<CorManager>();
+    Q_EMIT corManagerChanged();
+
     capp->m_trackPlaylist = std::make_unique<TrackPlaylist>();
     Q_EMIT trackPlaylistChanged();
 
     capp->m_trackPlaylistProxyModel = std::make_unique<TrackPlaylistProxyModel>();
     capp->m_trackPlaylistProxyModel->setPlaylistModel(capp->m_trackPlaylist.get());
     Q_EMIT trackPlaylistProxyModelChanged();
+
+    DatabaseManager &dbManager  = DatabaseManager::instance();
+
+    capp->m_corManager->setDatabaseManager(&dbManager);
+    capp->m_corManager->setCorPlayer(this);
+    capp->m_corManager->startListeningForTracks(capp->m_trackPlaylist.get());
 
     connect(this, &CorPlayer::enqueue, capp->m_trackPlaylistProxyModel.get(),
             static_cast<void (TrackPlaylistProxyModel::*)(
@@ -107,8 +112,6 @@ void CorPlayer::initializePlayer() {
 
     capp->m_metadataManager = std::make_unique<TrackMetadataManager>();
     Q_EMIT metadataManagerChanged();
-
-    capp->m_listener = std::make_unique<TracksWatchdog>();
 
     capp->m_trackManager->setAlbumRole(TrackPlaylist::AlbumRole);
     capp->m_trackManager->setArtistRole(TrackPlaylist::ArtistRole);
@@ -163,14 +166,10 @@ void CorPlayer::initializePlayer() {
     capp->m_metadataManager->setDatabaseIdRole(TrackPlaylist::DatabaseIdRole);
     capp->m_metadataManager->setTrackTypeRole(TrackPlaylist::ElementTypeRole);
     capp->m_metadataManager->setAlbumIdRole(TrackPlaylist::AlbumIdRole);
-    capp->m_metadataManager->setIsValidRole(TrackPlaylist::IsValidAlbumArtistRole);
+    capp->m_metadataManager->setIsValidRole(TrackPlaylist::IsValidRole);
 
     connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::currentTrackChanged, capp->m_metadataManager.get(), &TrackMetadataManager::setCurrentTrack);
     connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::currentTrackDataChanged, capp->m_metadataManager.get(), &TrackMetadataManager::updateCurrentTrackMetadata);
-
-    // TODO temp
-    connect(capp->m_trackPlaylist.get(), &TrackPlaylist::addNewUrl, capp->m_listener.get(), &TracksWatchdog::addNewUrl);
-    connect(capp->m_listener.get(), &TracksWatchdog::trackHasChanged, capp->m_trackPlaylist.get(), &TrackPlaylist::trackChanged);
     // clang-format on
 }
 
@@ -204,6 +203,10 @@ MetadataFields::EntryMetadataList CorPlayer::sanitizePlaylist(const MetadataFiel
         }
     }
     return result;
+}
+
+CorManager *CorPlayer::corManager() const {
+    return capp->m_corManager.get();
 }
 
 TrackPlaylist *CorPlayer::trackPlaylist() const {

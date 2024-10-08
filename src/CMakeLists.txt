@@ -11,12 +11,6 @@ set(PROJECT_SOURCES
     playermanager.h
     playerutils.cpp
     playerutils.h
-    playlist/trackplaylist.cpp
-    playlist/trackplaylist.h
-    playlist/trackplaylistproxymodel.cpp
-    playlist/trackplaylistproxymodel.h
-    playlist/playlistparser.cpp
-    playlist/playlistparser.h
     trackprogresswatchdog.cpp
     trackprogresswatchdog.h
     trackswatchdog.cpp
@@ -27,26 +21,37 @@ set(PROJECT_SOURCES
     filescanner.h
     cormanager.cpp
     cormanager.h
+
+    playlist/trackplaylist.cpp
+    playlist/trackplaylist.h
+    playlist/trackplaylistproxymodel.cpp
+    playlist/trackplaylistproxymodel.h
+    playlist/playlistparser.cpp
+    playlist/playlistparser.h
+
     taglib/tagreader.cpp
     taglib/tagreader.h
     taglib/tracktags.h
     taglib/tracktags.cpp
+
     database/basedatabase.cpp
     database/basedatabase.h
     database/cordatabase.cpp
     database/cordatabase.h
+    database/databasemanager.cpp
+    database/databasemanager.h
+    database/dbconnectionpool.cpp
+    database/dbconnectionpool.h
+    database/trackdatabase.cpp
+    database/trackdatabase.h
+    database/dbconnection.cpp
+    database/dbconnection.h
+    database/dbschema.cpp
+    database/dbschema.h
     database/sqlquery.cpp
     database/sqlquery.h
     database/sqltransaction.cpp
     database/sqltransaction.h
-    database/dbconnectionprovider.cpp
-    database/dbconnectionprovider.h
-    database/playlistdatabase.cpp
-    database/playlistdatabase.h
-    database/trackdatabase.cpp
-    database/trackdatabase.h
-    database/dbschema.cpp
-    database/dbschema.h
 )
 
 add_library(CorPlayerCore
@@ -71,8 +76,8 @@ qt_add_qml_module(CorPlayerCore
 target_include_directories(CorPlayerCore
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/playlist
     ${CMAKE_CURRENT_SOURCE_DIR}/database
+    ${CMAKE_CURRENT_SOURCE_DIR}/playlist
     ${CMAKE_CURRENT_SOURCE_DIR}/taglib
 )
 
