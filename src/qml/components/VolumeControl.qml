@@ -8,12 +8,13 @@ RowLayout {
     property bool muted
     property alias volume: volumeSlider.value
 
-    ToolButton {
+    IconButton {
         id: muteButton
 
         Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
 
         icon.name: volumeControl.muted ? "qrc:/icons/fa_volume_off" : "qrc:/icons/fa_volume_high"
+        tooltipText: volumeControl.muted ? "Unmute" : "Mute"
         onClicked: volumeControl.muted = !volumeControl.muted
     }
 

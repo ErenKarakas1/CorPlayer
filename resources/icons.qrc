@@ -12,5 +12,9 @@
         <file alias="fa_volume_high">icons/volume-high-solid.svg</file>
         <file alias="fa_volume_low">icons/volume-low-solid.svg</file>
         <file alias="fa_volume_off">icons/volume-off-solid.svg</file>
+        <file alias="fa_more">icons/ellipsis-solid.svg</file>
+        <file alias="fa_folder">icons/folder-solid.svg</file>
+        <file alias="fa_search">icons/magnifying-glass-solid.svg</file>
+        <file alias="fa_plus">icons/plus-solid.svg</file>
     </qresource>
 </RCC>

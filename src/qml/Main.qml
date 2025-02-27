@@ -1,31 +1,18 @@
+import CorPlayer
+
+import Qt.labs.platform
 import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QtMultimedia
-import CorPlayer
-
-import Qt.labs.platform
 
 ApplicationWindow {
     id: mainWindow
 
-    Settings {
-        id: settings
-        property int volume;
-        property bool muted;
-        property var trackState;
-        property bool maximized;
-        property alias height: mainWindow.height
-        property alias width: mainWindow.width
-    }
-
     readonly property alias fileDialog: fileDialog
-    readonly property alias controlBar: controlBarLoader.item
 
     function handleDrop(drop) {
-        console.log("test");
         if (drop.hasUrls) {
             if (!CorPlayer.openFiles(drop.urls)) {
                 console.error("Failed to open files");
@@ -44,38 +31,23 @@ ApplicationWindow {
     minimumHeight: 540
     minimumWidth: 960
 
-    // TODO: Decide on a minimum size for the window
-
     title: "CorPlayer"
     visible: true
 
-    Connections {
-        target: CorPlayer.mediaPlayer
-        function onVolumeChanged() {
-            if (controlBar !== null) {
-                controlBar.volumeControl.volume = CorPlayer.mediaPlayer.volume
-            }
-        }
-
-        function onMutedChanged() {
-            if (controlBar !== null) {
-                controlBar.volumeControl.muted = CorPlayer.mediaPlayer.isMuted
-            }
-        }
-    }
-
     Component.onCompleted: {
         CorPlayer.initialize();
-
         CorPlayer.trackManager.persistentState = settings.trackState;
-        if (settings.maximized) {
-            mainWindow.showMaximized()
-        }
+        if (settings.maximized)
+            mainWindow.showMaximized();
 
-        controlBar.volumeControl.volume = settings.volume;
-        controlBar.volumeControl.muted = settings.muted;
-        CorPlayer.mediaPlayer.isMuted = Qt.binding(() => controlBar.volumeControl.muted);
-        CorPlayer.mediaPlayer.volume = Qt.binding(() => controlBar.volumeControl.volume);
+        controls.volumeControl.volume = settings.volume;
+        controls.volumeControl.muted = settings.muted;
+        CorPlayer.mediaPlayer.isMuted = Qt.binding(() => {
+            return controls.volumeControl.muted;
+        });
+        CorPlayer.mediaPlayer.volume = Qt.binding(() => {
+            return controls.volumeControl.volume;
+        });
     }
 
     onClosing: {
@@ -87,16 +59,44 @@ ApplicationWindow {
             settings.width = mainWindow.width;
         }
     }
-
     Component.onDestruction: {
         settings.trackState = CorPlayer.trackManager.persistentState;
     }
 
+    Settings {
+        id: settings
+
+        property int volume
+        property bool muted
+        property var trackState
+        property bool maximized
+        property alias height: mainWindow.height
+        property alias width: mainWindow.width
+    }
+
+    Connections {
+        function onVolumeChanged() {
+            if (controls !== null)
+                controls.volumeControl.volume = CorPlayer.mediaPlayer.volume;
+
+        }
+
+        function onMutedChanged() {
+            if (controls !== null)
+                controls.volumeControl.muted = CorPlayer.mediaPlayer.isMuted;
+
+        }
+
+        target: CorPlayer.mediaPlayer
+    }
+
     DropArea {
         anchors.fill: parent
-
-        onDropped: drop => handleDrop(drop)
+        onDropped: (drop) => {
+            return handleDrop(drop);
+        }
     }
+
     FileDialog {
         id: fileDialog
 
@@ -106,6 +106,7 @@ ApplicationWindow {
             fileDialog.file = '';
             fileDialog.open();
         }
+
         function savePlaylist() {
             fileDialog.nameFilters = ["Playlist File (*.m3u8 *.m3u)"];
             fileDialog.defaultSuffix = 'm3u8';
@@ -115,59 +116,258 @@ ApplicationWindow {
         }
 
         folder: StandardPaths.writableLocation(StandardPaths.MusicLocation)
-
         onAccepted: {
             CorPlayer.trackPlaylistProxyModel.loadPlaylist(fileDialog.file);
         }
     }
+
     Rectangle {
         id: mainView
 
         anchors.fill: parent
         color: "black"
 
-        ColumnLayout {
+        RowLayout {
             anchors.fill: parent
             spacing: 0
 
-            RowLayout {
-                Layout.preferredWidth: parent.width
-                Layout.alignment: Qt.AlignHCenter
-                Layout.preferredHeight: parent.height * 0.9
+            // Left sidebar
+            Rectangle {
+                Layout.preferredWidth: 240
+                Layout.fillHeight: true
+                color: "black"
 
-                Button {
-                    Layout.alignment: Qt.AlignLeft
-                    text: "Open Playlist"
+                ColumnLayout {
+                    anchors.fill: parent
+                    spacing: 0
 
-                    onClicked: fileDialog.loadPlaylist()
-                }
+                    Row {
+                        Layout.fillWidth: true
+                        Layout.margins: 16
+                        spacing: 8
 
-                Button {
-                    Layout.alignment: Qt.AlignRight
-                    text: "Save Playlist"
+                        IconButton {
+                            icon.name: "qrc:/icons/fa_plus"
+                            tooltipText: "Create New Playlist"
+                            onClicked: {
+                                console.log("New Playlist");
+                            }
+                        }
 
-                    onClicked: fileDialog.savePlaylist()
+                        IconButton {
+                            icon.name: "qrc:/icons/fa_folder"
+                            tooltipText: "Load Playlist"
+                            onClicked: fileDialog.loadPlaylist();
+                        }
+                    }
+
+                    // Divider
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        Layout.margins: 8
+                        color: "gray"
+                    }
+
+                    ListView {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        // TODO: add model
+                        delegate: PlaylistTrackItem {
+                            width: parent.width
+                            height: 40
+                            name: "Track Name"
+                            // selected: false
+                            onClicked: {
+                                console.log("Switch to playlist")
+                            }
+                        }
+                    }
                 }
             }
 
-            Loader {
-                id: controlBarLoader
-
-                Layout.fillHeight: true
+            // Main content
+            Rectangle {
                 Layout.fillWidth: true
-                visible: active
+                Layout.fillHeight: true
+                color: "#121212"
 
-                sourceComponent: PlaybackControlBar {
-                    id: controlBar
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 16
+                    spacing: 16
 
-                    focus: true
+                    // Current playlist header
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 16
 
-                    Component.onDestruction: {
-                        settings.volume = controlBar.volumeControl.volume;
-                        settings.muted = controlBar.volumeControl.muted;
+                        Rectangle {
+                            Layout.preferredWidth: 192
+                            Layout.preferredHeight: 192
+                            color: "#282828"
+
+                            Image {
+                                anchors.fill: parent
+                                anchors.margins: 16
+                                // source: "qrc:/icons/fa_music"
+                                fillMode: Image.PreserveAspectFit
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            Text {
+                                text: "Current Playlist"
+                                color: "white"
+                                font.pixelSize: 48
+                                font.weight: Font.Bold
+                            }
+
+                            Text {
+                                text: tracks.count + " tracks"
+                                color: "#b3b3b3"
+                                font.pixelSize: 14
+                            }
+
+                            Row {
+                                spacing: 8
+
+                                // TODO: track playing like other play button
+                                Button {
+                                    // playing: CorPlayer.playerManager.isPlaying
+                                    enabled: CorPlayer.playerManager.canPlay
+                                    onClicked: {
+                                        if (playing) {
+                                            CorPlayer.trackManager.pause()
+                                        } else {
+                                            CorPlayer.trackManager.play()
+                                        }
+                                    }
+                                }
+
+                                Button {
+                                    // icon.name: "qrc:/icons/fa_save"
+                                    onClicked: fileDialog.savePlaylist()
+                                }
+                            }
+                        }
+                    }
+
+                    // Tracks list header
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 32
+                        color: "transparent"
+
+                        RowLayout {
+                            anchors.fill: parent
+                            spacing: 8
+
+                            Text {
+                                Layout.preferredWidth: 40
+                                text: "#"
+                                color: "#b3b3b3"
+                                font.pixelSize: 12
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: "Title"
+                                color: "#b3b3b3"
+                                font.pixelSize: 12
+                            }
+
+                            Text {
+                                Layout.preferredWidth: 200
+                                text: "Artist"
+                                color: "#b3b3b3"
+                                font.pixelSize: 12
+                            }
+
+                            Text {
+                                Layout.preferredWidth: 200
+                                text: "Album"
+                                color: "#b3b3b3"
+                                font.pixelSize: 12
+                            }
+
+                            Text {
+                                Layout.preferredWidth: 64
+                                text: "Duration"
+                                color: "#b3b3b3"
+                                font.pixelSize: 12
+                            }
+                        }
+                    }
+
+                    // Tracks list
+                    ListView {
+                        id: tracks
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        model: CorPlayer.playlistModel
+                        // delegate: TrackListItem {
+                        //     width: parent.width
+                        //     height: 56
+                        //     index: model.index + 1
+                        //     title: model.title
+                        //     artist: model.artist
+                        //     album: model.album
+                        //     duration: model.duration
+                        //     isPlaying: model.isPlaying
+                        //     isCurrentTrack: model.current
+                        //     onClicked: {
+                        //         console.log("Play track")
+                        //     }
+                        // }
+
+                        ScrollBar.vertical: ScrollBar {}
                     }
                 }
             }
         }
+
+        Rectangle {
+            id: playerControls
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: 90
+            color: "#181818"
+
+            PlaybackControlBar {
+                id: controls
+                anchors.fill: parent
+
+                focus: true
+
+                Component.onDestruction: {
+                    settings.volume = controls.volumeControl.volume;
+                    settings.muted = controls.volumeControl.muted;
+                }
+            }
+        }
+
+        // Loader {
+        //     id: controlsLoader
+        //
+        //     Layout.preferredWidth: parent.width
+        //     Layout.preferredHeight: parent.height * 0.1
+        //     visible: active
+        //
+        //     sourceComponent: Playbackcontrols {
+        //         id: controls
+        //
+        //         focus: true
+        //
+        //         Component.onDestruction: {
+        //             settings.volume = controls.volumeControl.volume;
+        //             settings.muted = controls.volumeControl.muted;
+        //         }
+        //     }
+        // }
     }
 }
