@@ -1,6 +1,6 @@
 #include "filescanner.h"
 
-#include "playerutils.h"
+#include "playerutils.hpp"
 #include "taglib/tagreader.h"
 #include "taglib/tracktags.h"
 
@@ -19,25 +19,25 @@ FileScanner::FileScanner() : fs(std::make_unique<FileScannerPrivate>()) {}
 
 FileScanner::~FileScanner() = default;
 
-MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file) const {
+Metadata::TrackFields FileScanner::scanFile(const QUrl& file) const {
     const QFileInfo fileInfo(file.toLocalFile());
     return scanFile(file, fileInfo);
 }
 
-MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file, const QFileInfo &fileInfo) const {
-    MetadataFields::TrackMetadataField newTrack;
+Metadata::TrackFields FileScanner::scanFile(const QUrl& file, const QFileInfo& fileInfo) const {
+    Metadata::TrackFields newTrack;
 
     if (!file.isLocalFile()) {
         return newTrack;
     }
 
-    newTrack[MetadataFields::FileModificationTime] = fileInfo.metadataChangeTime();
-    newTrack[MetadataFields::ResourceRole] = file;
-    newTrack[MetadataFields::ElementTypeRole] = PlayerUtils::Track;
-    newTrack[MetadataFields::DurationRole] = QTime::fromMSecsSinceStartOfDay(1);
+    newTrack.insert(Metadata::Fields::DateModified, fileInfo.metadataChangeTime());
+    newTrack.insert(Metadata::Fields::ResourceUrl, file);
+    newTrack.insert(Metadata::Fields::ElementType, PlayerUtils::Track);
+    newTrack.insert(Metadata::Fields::Duration, QTime::fromMSecsSinceStartOfDay(1));
 
-    const auto &localFile = file.toLocalFile();
-    const auto &mimeType = fs->m_mimeDB.mimeTypeForFile(localFile);
+    const QString& localFile = file.toLocalFile();
+    const auto& mimeType = fs->m_mimeDB.mimeTypeForFile(localFile);
 
     if (!mimeType.name().startsWith(QLatin1StringView("audio/"))) {
         return newTrack;
@@ -46,14 +46,14 @@ MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file, const
     TrackTags tags(localFile);
     fs->m_tagReader.readMetadata(localFile, tags);
 
-    const auto roleMapping = tags.roleMapping();
+    const auto roleMapping = tags.fieldMapping();
     auto rangeBegin = roleMapping.constKeyValueBegin();
     QVariant value;
 
     while (rangeBegin != roleMapping.constKeyValueEnd()) {
         const auto key = rangeBegin->first;
         const auto duplicateRangeEnd =
-            std::ranges::find_if(rangeBegin, roleMapping.constKeyValueEnd(), [key](const auto &pair) {
+            std::ranges::find_if(rangeBegin, roleMapping.constKeyValueEnd(), [key](const auto& pair) {
                 return pair.first != key;
             });
 
@@ -63,7 +63,7 @@ MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file, const
             QStringList values;
             values.reserve(static_cast<int>(duplicateCount));
 
-            std::ranges::for_each(rangeBegin, duplicateRangeEnd, [&values](const auto &pair) {
+            std::ranges::for_each(rangeBegin, duplicateRangeEnd, [&values](const auto& pair) {
                 values.append(pair.second.toString());
             });
 
@@ -72,7 +72,7 @@ MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file, const
             value = rangeBegin->second;
         }
 
-        if (key == MetadataFields::DurationRole) {
+        if (key == Metadata::Fields::Duration) {
             newTrack.insert(key,
                             QTime::fromMSecsSinceStartOfDay(static_cast<int>(1000 * rangeBegin->second.toDouble())));
         } else {
@@ -82,11 +82,11 @@ MetadataFields::TrackMetadataField FileScanner::scanFile(const QUrl &file, const
         rangeBegin = duplicateRangeEnd;
     }
 
-    if (newTrack[MetadataFields::HasEmbeddedCover].toBool()) {
-        newTrack[MetadataFields::ImageUrlRole] = QUrl(QLatin1StringView("image://cover/") + localFile);
+    if (newTrack.get(Metadata::Fields::HasEmbeddedCover).toBool()) {
+        newTrack.insert(Metadata::Fields::CoverImage, QUrl(QLatin1StringView("image://cover/") + localFile));
     }
 
-    newTrack[MetadataFields::HashRole] = newTrack.generateHash();
+    newTrack.insert(Metadata::Fields::Hash, newTrack.generateHash());
 
     return newTrack;
 }

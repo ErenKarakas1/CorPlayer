@@ -1,29 +1,27 @@
 set(PROJECT_SOURCES
+    asynccoverprovider.cpp
+    asynccoverprovider.h
     corplayer.cpp
     corplayer.h
     activetrackmanager.cpp
     activetrackmanager.h
     mediaplayerwrapper.cpp
     mediaplayerwrapper.h
-    metadatafields.cpp
-    metadatafields.h
+    metadata.cpp
+    metadata.hpp
     playermanager.cpp
     playermanager.h
     playerutils.cpp
-    playerutils.h
+    playerutils.hpp
     trackprogresswatchdog.cpp
     trackprogresswatchdog.h
     trackswatchdog.cpp
     trackswatchdog.h
-    trackmetadatamanager.cpp
-    trackmetadatamanager.h
     filescanner.cpp
     filescanner.h
-    cormanager.cpp
-    cormanager.h
 
-    playlist/trackplaylist.cpp
-    playlist/trackplaylist.h
+    playlist/playlistmodel.cpp
+    playlist/playlistmodel.hpp
     playlist/trackplaylistproxymodel.cpp
     playlist/trackplaylistproxymodel.h
     playlist/playlistparser.cpp
@@ -31,8 +29,8 @@ set(PROJECT_SOURCES
 
     taglib/tagreader.cpp
     taglib/tagreader.h
-    taglib/tracktags.h
     taglib/tracktags.cpp
+    taglib/tracktags.h
 
     database/basedatabase.cpp
     database/basedatabase.h
@@ -62,15 +60,20 @@ add_library(CorPlayerCore
 qt_add_qml_module(CorPlayerCore
     URI CorPlayer
     VERSION 1.0
+
     QML_FILES
     qml/Main.qml
     qml/PlaybackControl.qml
     qml/PlaybackControlBar.qml
-    qml/components/StepSlider.qml
+
     qml/components/DurationSlider.qml
-    qml/components/MaterialButton.qml
-    qml/components/VolumeControl.qml
+    qml/components/IconButton.qml
+    qml/components/IconButtonWithBackground.qml
+    qml/components/ImageWithFallback.qml
+    qml/components/PlaylistTrackItem.qml
+    qml/components/StepSlider.qml
     qml/components/TrackInfo.qml
+    qml/components/VolumeControl.qml
 )
 
 target_include_directories(CorPlayerCore

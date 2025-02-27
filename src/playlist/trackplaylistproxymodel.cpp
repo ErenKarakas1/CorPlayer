@@ -1,9 +1,9 @@
 #include <playlist/trackplaylistproxymodel.h>
 
+#include <playlist/playlistmodel.hpp>
 #include <playlist/playlistparser.h>
-#include <playlist/trackplaylist.h>
 
-#include "playerutils.h"
+#include "playerutils.hpp"
 
 #include <QDir>
 #include <QFile>
@@ -17,7 +17,7 @@
 
 class TrackPlaylistProxyModelPrivate {
 public:
-    TrackPlaylist *m_playlistModel;
+    PlaylistModel* m_playlistModel;
     QPersistentModelIndex m_previousTrack;
     QPersistentModelIndex m_currentTrack;
     QPersistentModelIndex m_nextTrack;
@@ -37,14 +37,14 @@ public:
     QUrl m_loadedPlaylistUrl;
 };
 
-TrackPlaylistProxyModel::TrackPlaylistProxyModel(QObject *parent)
+TrackPlaylistProxyModel::TrackPlaylistProxyModel(QObject* parent)
     : QAbstractProxyModel(parent), tpp(std::make_unique<TrackPlaylistProxyModelPrivate>()) {
     tpp->m_randomGenerator.seed(static_cast<unsigned int>(QTime::currentTime().msec()));
 }
 
 TrackPlaylistProxyModel::~TrackPlaylistProxyModel() = default;
 
-QModelIndex TrackPlaylistProxyModel::index(const int row, const int column, const QModelIndex &parent) const {
+QModelIndex TrackPlaylistProxyModel::index(const int row, const int column, const QModelIndex& parent) const {
     if (row < 0 || column < 0 || row > rowCount() - 1) {
         return {};
     }
@@ -53,7 +53,7 @@ QModelIndex TrackPlaylistProxyModel::index(const int row, const int column, cons
     Q_UNUSED(parent);
 }
 
-QModelIndex TrackPlaylistProxyModel::mapFromSource(const QModelIndex &sourceIndex) const {
+QModelIndex TrackPlaylistProxyModel::mapFromSource(const QModelIndex& sourceIndex) const {
     if (!sourceIndex.isValid()) {
         return {};
     }
@@ -61,9 +61,9 @@ QModelIndex TrackPlaylistProxyModel::mapFromSource(const QModelIndex &sourceInde
     return tpp->m_playlistModel->index(mapRowFromSource(sourceIndex.row()), sourceIndex.column());
 }
 
-QItemSelection TrackPlaylistProxyModel::mapSelectionFromSource(const QItemSelection &sourceSelection) const {
+QItemSelection TrackPlaylistProxyModel::mapSelectionFromSource(const QItemSelection& sourceSelection) const {
     QItemSelection proxySelection;
-    for (const QItemSelectionRange &range : sourceSelection) {
+    for (const QItemSelectionRange& range : sourceSelection) {
         const QModelIndex proxyTopLeft = mapFromSource(range.topLeft());
         const QModelIndex proxyBottomRight = mapFromSource(range.bottomRight());
         proxySelection.append(QItemSelectionRange(proxyTopLeft, proxyBottomRight));
@@ -72,9 +72,9 @@ QItemSelection TrackPlaylistProxyModel::mapSelectionFromSource(const QItemSelect
     return proxySelection;
 }
 
-QItemSelection TrackPlaylistProxyModel::mapSelectionToSource(const QItemSelection &proxySelection) const {
+QItemSelection TrackPlaylistProxyModel::mapSelectionToSource(const QItemSelection& proxySelection) const {
     QItemSelection sourceSelection;
-    for (const QItemSelectionRange &range : proxySelection) {
+    for (const QItemSelectionRange& range : proxySelection) {
         const QModelIndex sourceTopLeft = mapToSource(range.topLeft());
         const QModelIndex sourceBottomRight = mapToSource(range.bottomRight());
         sourceSelection.append(QItemSelectionRange(sourceTopLeft, sourceBottomRight));
@@ -83,7 +83,7 @@ QItemSelection TrackPlaylistProxyModel::mapSelectionToSource(const QItemSelectio
     return sourceSelection;
 }
 
-QModelIndex TrackPlaylistProxyModel::mapToSource(const QModelIndex &proxyIndex) const {
+QModelIndex TrackPlaylistProxyModel::mapToSource(const QModelIndex& proxyIndex) const {
     if (!proxyIndex.isValid()) {
         return {};
     }
@@ -105,7 +105,7 @@ int TrackPlaylistProxyModel::mapRowFromSource(const int sourceRow) const {
     return sourceRow;
 }
 
-int TrackPlaylistProxyModel::rowCount(const QModelIndex &parent) const {
+int TrackPlaylistProxyModel::rowCount(const QModelIndex& parent) const {
     if (tpp->m_shuffleMode != NoShuffle) {
         if (parent.isValid()) {
             return 0;
@@ -115,21 +115,21 @@ int TrackPlaylistProxyModel::rowCount(const QModelIndex &parent) const {
     return tpp->m_playlistModel->rowCount(parent);
 }
 
-int TrackPlaylistProxyModel::columnCount(const QModelIndex &parent) const {
+int TrackPlaylistProxyModel::columnCount(const QModelIndex& parent) const {
     Q_UNUSED(parent);
     return 1;
 }
 
-QModelIndex TrackPlaylistProxyModel::parent(const QModelIndex &child) const {
+QModelIndex TrackPlaylistProxyModel::parent(const QModelIndex& child) const {
     Q_UNUSED(child);
     return {};
 }
 
-bool TrackPlaylistProxyModel::hasChildren(const QModelIndex &parent) const {
+bool TrackPlaylistProxyModel::hasChildren(const QModelIndex& parent) const {
     return parent.isValid() ? false : (rowCount() > 0);
 }
 
-void TrackPlaylistProxyModel::setPlaylistModel(TrackPlaylist *playlistModel) {
+void TrackPlaylistProxyModel::setPlaylistModel(PlaylistModel* playlistModel) {
     // clang-format off
     if (tpp->m_playlistModel != nullptr) {
         disconnect(playlistModel, &QAbstractItemModel::rowsAboutToBeInserted, this, &TrackPlaylistProxyModel::sourceRowsAboutToBeInserted);
@@ -166,7 +166,7 @@ void TrackPlaylistProxyModel::setPlaylistModel(TrackPlaylist *playlistModel) {
     // clang-format on
 }
 
-void TrackPlaylistProxyModel::setSourceModel(QAbstractItemModel *sourceModel) {
+void TrackPlaylistProxyModel::setSourceModel(QAbstractItemModel* sourceModel) {
     QAbstractProxyModel::setSourceModel(sourceModel);
 }
 
@@ -206,7 +206,6 @@ void TrackPlaylistProxyModel::setShuffleMode(const Shuffle value) {
         if (playlistSize != 0) {
             Q_EMIT layoutAboutToBeChanged(QList<QPersistentModelIndex>(), QAbstractItemModel::VerticalSortHint);
 
-            // TODO first, reset playlist to non-random one if it's currently shuffled, but why?
             // if (!tpp->m_randomMapping.isEmpty()) {
             //     Q_ASSERT(tpp->m_shuffleMode != TrackPlaylistProxyModel::Shuffle::NoShuffle);
             //     QModelIndexList from;
@@ -273,13 +272,13 @@ TrackPlaylistProxyModel::Shuffle TrackPlaylistProxyModel::shuffleMode() const {
     return tpp->m_shuffleMode;
 }
 
-void TrackPlaylistProxyModel::sourceRowsAboutToBeInserted(const QModelIndex &parent, const int start, const int end) {
+void TrackPlaylistProxyModel::sourceRowsAboutToBeInserted(const QModelIndex& parent, const int start, const int end) {
     if (tpp->m_shuffleMode == NoShuffle) {
         beginInsertRows(parent, start, end);
     }
 }
 
-void TrackPlaylistProxyModel::sourceRowsInserted(const QModelIndex &parent, const int start, const int end) {
+void TrackPlaylistProxyModel::sourceRowsInserted(const QModelIndex& parent, const int start, const int end) {
     if (tpp->m_shuffleMode == Track) {
         const auto newItemsCount = end - start + 1;
         tpp->m_randomMapping.reserve(rowCount() + newItemsCount);
@@ -341,7 +340,7 @@ void TrackPlaylistProxyModel::sourceRowsInserted(const QModelIndex &parent, cons
     Q_EMIT persistentStateChanged();
 }
 
-void TrackPlaylistProxyModel::sourceRowsAboutToBeRemoved(const QModelIndex &parent, const int start, const int end) {
+void TrackPlaylistProxyModel::sourceRowsAboutToBeRemoved(const QModelIndex& parent, const int start, const int end) {
     if (tpp->m_shuffleMode == NoShuffle) {
         if (end - start + 1 == rowCount()) {
             beginRemoveRows(parent, start, end);
@@ -369,7 +368,7 @@ void TrackPlaylistProxyModel::sourceRowsAboutToBeRemoved(const QModelIndex &pare
     }
 }
 
-void TrackPlaylistProxyModel::sourceRowsRemoved(const QModelIndex &parent, const int start, const int end) {
+void TrackPlaylistProxyModel::sourceRowsRemoved(const QModelIndex& parent, const int start, const int end) {
     Q_UNUSED(parent);
     Q_UNUSED(start);
     Q_UNUSED(end);
@@ -407,14 +406,14 @@ void TrackPlaylistProxyModel::sourceRowsRemoved(const QModelIndex &parent, const
     Q_EMIT persistentStateChanged();
 }
 
-void TrackPlaylistProxyModel::sourceRowsAboutToBeMoved(const QModelIndex &parent, const int start, const int end,
-                                                       const QModelIndex &destParent, const int destRow) {
+void TrackPlaylistProxyModel::sourceRowsAboutToBeMoved(const QModelIndex& parent, const int start, const int end,
+                                                       const QModelIndex& destParent, const int destRow) {
     Q_ASSERT(tpp->m_shuffleMode == TrackPlaylistProxyModel::Shuffle::NoShuffle);
     beginMoveRows(parent, start, end, destParent, destRow);
 }
 
-void TrackPlaylistProxyModel::sourceRowsMoved(const QModelIndex &parent, const int start, const int end,
-                                              const QModelIndex &destParent, const int destRow) {
+void TrackPlaylistProxyModel::sourceRowsMoved(const QModelIndex& parent, const int start, const int end,
+                                              const QModelIndex& destParent, const int destRow) {
     Q_ASSERT(tpp->m_shuffleMode == TrackPlaylistProxyModel::Shuffle::NoShuffle);
 
     Q_UNUSED(parent);
@@ -438,8 +437,8 @@ void TrackPlaylistProxyModel::sourceModelReset() {
     endResetModel();
 }
 
-void TrackPlaylistProxyModel::sourceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
-                                                const QList<int> &roles) {
+void TrackPlaylistProxyModel::sourceDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight,
+                                                const QList<int>& roles) {
     const auto startSourceRow = topLeft.row();
     const auto endSourceRow = bottomRight.row();
 
@@ -476,7 +475,9 @@ int TrackPlaylistProxyModel::totalTracksDuration() const {
     int time = 0;
 
     for (int i = 0; i < rowCount(); ++i) {
-        time += tpp->m_playlistModel->data(index(i, 0), TrackPlaylist::DurationRole).toTime().msecsSinceStartOfDay();
+        time += tpp->m_playlistModel->data(index(i, 0), static_cast<int>(Metadata::Fields::Duration))
+                    .toTime()
+                    .msecsSinceStartOfDay();
     }
     return time;
 }
@@ -485,7 +486,9 @@ int TrackPlaylistProxyModel::remainingTracksDuration() const {
     int time = 0;
 
     for (int i = tpp->m_currentTrack.row(); i < rowCount(); ++i) {
-        time += tpp->m_playlistModel->data(index(i, 0), TrackPlaylist::DurationRole).toTime().msecsSinceStartOfDay();
+        time += tpp->m_playlistModel->data(index(i, 0), static_cast<int>(Metadata::Fields::Duration))
+                    .toTime()
+                    .msecsSinceStartOfDay();
     }
     return time;
 }
@@ -506,18 +509,20 @@ int TrackPlaylistProxyModel::currentTrackRow() const {
     return tpp->m_currentTrack.row();
 }
 
-void TrackPlaylistProxyModel::enqueue(const MetadataFields::MusicMetadataField &newEntry, const QString &newEntryTitle,
+void TrackPlaylistProxyModel::enqueue(const Metadata::TrackFields& newEntry, const QString& newEntryTitle,
                                       const PlayerUtils::PlaylistEnqueueMode enqueueMode,
                                       const PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay) {
-    enqueue({{newEntry, newEntryTitle, {}}}, enqueueMode, triggerPlay);
+    enqueue({{.trackFields = newEntry, .title = newEntryTitle, .url = {}}}, enqueueMode, triggerPlay);
 }
 
-void TrackPlaylistProxyModel::enqueue(const QUrl &entryUrl, const PlayerUtils::PlaylistEnqueueMode enqueueMode,
+void TrackPlaylistProxyModel::enqueue(const QUrl& entryUrl, const PlayerUtils::PlaylistEnqueueMode enqueueMode,
                                       const PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay) {
-    enqueue({{{{MetadataFields::ElementTypeRole, PlayerUtils::Track}}, {}, entryUrl}}, enqueueMode, triggerPlay);
+    auto entry = Metadata::TrackFields();
+    entry.insert(Metadata::Fields::ElementType, PlayerUtils::Track);
+    enqueue({{.trackFields = entry, .title = {}, .url = entryUrl}}, enqueueMode, triggerPlay);
 }
 
-void TrackPlaylistProxyModel::enqueue(const MetadataFields::EntryMetadataList &newEntries,
+void TrackPlaylistProxyModel::enqueue(const Metadata::EntryFieldsList& newEntries,
                                       const PlayerUtils::PlaylistEnqueueMode enqueueMode,
                                       const PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay) {
     if (newEntries.isEmpty()) return;
@@ -535,7 +540,7 @@ void TrackPlaylistProxyModel::enqueue(const MetadataFields::EntryMetadataList &n
     tpp->m_playlistModel->enqueueMultipleEntries(newEntries, enqueueIndex);
 }
 
-void TrackPlaylistProxyModel::trackInError(const QUrl &sourceInError, const QMediaPlayer::Error playerError) const {
+void TrackPlaylistProxyModel::trackInError(const QUrl& sourceInError, const QMediaPlayer::Error playerError) const {
     tpp->m_playlistModel->trackInError(sourceInError, playerError);
 }
 
@@ -546,14 +551,14 @@ void TrackPlaylistProxyModel::skipNextTrack(const PlayerUtils::SkipReason reason
         tpp->m_currentTrack = index(tpp->m_currentTrack.row(), 0);
     } else if (tpp->m_currentTrack.row() >= rowCount() - 1) {
         switch (tpp->m_repeatMode) {
-            case Repeat::CurrentTrack:
-            case Repeat::Playlist:
-                tpp->m_currentTrack = index(0, 0);
-                break;
-            case Repeat::None:
-                tpp->m_currentTrack = index(0, 0);
-                Q_EMIT playlistFinished();
-                break;
+        case Repeat::CurrentTrack:
+        case Repeat::Playlist:
+            tpp->m_currentTrack = index(0, 0);
+            break;
+        case Repeat::None:
+            tpp->m_currentTrack = index(0, 0);
+            Q_EMIT playlistFinished();
+            break;
         }
     } else {
         tpp->m_currentTrack = index(tpp->m_currentTrack.row() + 1, 0);
@@ -650,40 +655,40 @@ void TrackPlaylistProxyModel::determineAndNotifyPreviousAndNextTracks() {
     const auto m_oldNextTrack = tpp->m_nextTrack;
 
     switch (tpp->m_repeatMode) {
-        case None:
-            // return nothing if no tracks available
-            if (tpp->m_currentTrack.row() == 0) {
-                tpp->m_previousTrack = QPersistentModelIndex();
-            } else {
-                tpp->m_previousTrack = index(tpp->m_currentTrack.row() - 1, 0);
-            }
+    case None:
+        // return nothing if no tracks available
+        if (tpp->m_currentTrack.row() == 0) {
+            tpp->m_previousTrack = QPersistentModelIndex();
+        } else {
+            tpp->m_previousTrack = index(tpp->m_currentTrack.row() - 1, 0);
+        }
 
-            if (tpp->m_currentTrack.row() == rowCount() - 1) {
-                tpp->m_nextTrack = QPersistentModelIndex();
-            } else {
-                tpp->m_nextTrack = index(tpp->m_currentTrack.row() + 1, 0);
-            }
+        if (tpp->m_currentTrack.row() == rowCount() - 1) {
+            tpp->m_nextTrack = QPersistentModelIndex();
+        } else {
+            tpp->m_nextTrack = index(tpp->m_currentTrack.row() + 1, 0);
+        }
 
-            break;
-        case Playlist:
-            // forward to end or begin when repeating
-            if (tpp->m_currentTrack.row() == 0) {
-                tpp->m_previousTrack = index(rowCount() - 1, 0);
-            } else {
-                tpp->m_previousTrack = index(tpp->m_currentTrack.row() - 1, 0);
-            }
+        break;
+    case Playlist:
+        // forward to end or begin when repeating
+        if (tpp->m_currentTrack.row() == 0) {
+            tpp->m_previousTrack = index(rowCount() - 1, 0);
+        } else {
+            tpp->m_previousTrack = index(tpp->m_currentTrack.row() - 1, 0);
+        }
 
-            if (tpp->m_currentTrack.row() == rowCount() - 1) {
-                tpp->m_nextTrack = index(0, 0);
-            } else {
-                tpp->m_nextTrack = index(tpp->m_currentTrack.row() + 1, 0);
-            }
+        if (tpp->m_currentTrack.row() == rowCount() - 1) {
+            tpp->m_nextTrack = index(0, 0);
+        } else {
+            tpp->m_nextTrack = index(tpp->m_currentTrack.row() + 1, 0);
+        }
 
-            break;
-        case CurrentTrack:
-            tpp->m_previousTrack = index(tpp->m_currentTrack.row(), 0);
-            tpp->m_nextTrack = index(tpp->m_currentTrack.row(), 0);
-            break;
+        break;
+    case CurrentTrack:
+        tpp->m_previousTrack = index(tpp->m_currentTrack.row(), 0);
+        tpp->m_nextTrack = index(tpp->m_currentTrack.row(), 0);
+        break;
     }
 
     if (tpp->m_previousTrack != m_oldPreviousTrack) {
@@ -695,9 +700,9 @@ void TrackPlaylistProxyModel::determineAndNotifyPreviousAndNextTracks() {
     }
 }
 
-int TrackPlaylistProxyModel::indexForTrackUrl(const QUrl &url) const {
+int TrackPlaylistProxyModel::indexForTrackUrl(const QUrl& url) const {
     for (int i = 0; i < rowCount(); ++i) {
-        const QUrl thisTrackUrl = data(index(i, 0), TrackPlaylist::ResourceRole).toUrl();
+        const QUrl thisTrackUrl = data(index(i, 0), static_cast<int>(Metadata::Fields::ResourceUrl)).toUrl();
 
         if (thisTrackUrl == url) {
             return i;
@@ -706,7 +711,7 @@ int TrackPlaylistProxyModel::indexForTrackUrl(const QUrl &url) const {
     return -1;
 }
 
-void TrackPlaylistProxyModel::switchToTrackUrl(const QUrl &url,
+void TrackPlaylistProxyModel::switchToTrackUrl(const QUrl& url,
                                                const PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay) {
     switchTo(indexForTrackUrl(url));
 
@@ -740,10 +745,10 @@ void TrackPlaylistProxyModel::determineTracks() {
     if (!tpp->m_currentTrack.isValid() || tpp->m_currentPlaylistPosition != tpp->m_currentTrack.row()) {
         for (int row = 0; row < rowCount(); ++row) {
             auto candidateTrack = index(row, 0);
-            const auto type =
-                candidateTrack.data(TrackPlaylist::ElementTypeRole).value<PlayerUtils::PlaylistEntryType>();
+            const auto type = candidateTrack.data(static_cast<int>(Metadata::Fields::ElementType))
+                                  .value<PlayerUtils::PlaylistEntryType>();
 
-            if (candidateTrack.isValid() && candidateTrack.data(TrackPlaylist::IsValidRole).toBool() &&
+            if (candidateTrack.isValid() && candidateTrack.data(static_cast<int>(Metadata::Fields::IsValid)).toBool() &&
                 (type == PlayerUtils::Track || type == PlayerUtils::FileName)) {
                 tpp->m_currentTrack = candidateTrack;
                 notifyCurrentTrackChanged();
@@ -761,7 +766,7 @@ void TrackPlaylistProxyModel::determineTracks() {
     }
 }
 
-bool TrackPlaylistProxyModel::savePlaylist(const QUrl &fileName) const {
+bool TrackPlaylistProxyModel::savePlaylist(const QUrl& fileName) const {
     QFile outputFile(fileName.toLocalFile());
     auto open = outputFile.open(QFile::WriteOnly);
 
@@ -772,8 +777,9 @@ bool TrackPlaylistProxyModel::savePlaylist(const QUrl &fileName) const {
     QList<QString> listOfFilePaths;
 
     for (int i = 0; i < rowCount(); ++i) {
-        if (data(index(i, 0), TrackPlaylist::IsValidRole).toBool()) {
-            listOfFilePaths.append(data(index(i, 0), TrackPlaylist::ResourceRole).toUrl().toLocalFile());
+        if (data(index(i, 0), static_cast<int>(Metadata::Fields::IsValid)).toBool()) {
+            listOfFilePaths.append(
+                data(index(i, 0), static_cast<int>(Metadata::Fields::ResourceUrl)).toUrl().toLocalFile());
         }
     }
 
@@ -783,11 +789,11 @@ bool TrackPlaylistProxyModel::savePlaylist(const QUrl &fileName) const {
     return true;
 }
 
-void TrackPlaylistProxyModel::loadPlaylist(const QUrl &fileName) {
+void TrackPlaylistProxyModel::loadPlaylist(const QUrl& fileName) {
     loadPlaylist(fileName, PlayerUtils::ReplacePlaylist, PlayerUtils::DoNotTriggerPlay);
 }
 
-void TrackPlaylistProxyModel::loadPlaylist(const QUrl &fileName, const PlayerUtils::PlaylistEnqueueMode enqueueMode,
+void TrackPlaylistProxyModel::loadPlaylist(const QUrl& fileName, const PlayerUtils::PlaylistEnqueueMode enqueueMode,
                                            const PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay) {
     resetPartiallyLoaded();
 
@@ -806,7 +812,7 @@ void TrackPlaylistProxyModel::loadPlaylist(const QUrl &fileName, const PlayerUti
 
     tpp->m_loadedPlaylistUrl = fileName;
 
-    MetadataFields::EntryMetadataList newTracks;
+    Metadata::EntryFieldsList newTracks;
     QSet<QString> processedFiles{QFileInfo(inputFile).canonicalFilePath()};
     loadLocalPlaylist(newTracks, processedFiles, fileName, fileContent);
 
@@ -830,7 +836,7 @@ QVariantMap TrackPlaylistProxyModel::persistentState() const {
     return currentState;
 }
 
-void TrackPlaylistProxyModel::setPersistentState(const QVariantMap &persistentState) {
+void TrackPlaylistProxyModel::setPersistentState(const QVariantMap& persistentState) {
     auto playListIt = persistentState.find(QStringLiteral("playlist"));
     if (playListIt != persistentState.end()) {
         tpp->m_playlistModel->enqueueRestoredEntries(playListIt.value().toList());
@@ -920,8 +926,8 @@ void TrackPlaylistProxyModel::resetPartiallyLoaded() {
     Q_EMIT partiallyLoadedChanged();
 }
 
-void TrackPlaylistProxyModel::loadLocalFile(MetadataFields::EntryMetadataList &newTracks, QSet<QString> &processedFiles,
-                                            const QFileInfo &fileInfo) {
+void TrackPlaylistProxyModel::loadLocalFile(Metadata::EntryFieldsList& newTracks, QSet<QString>& processedFiles,
+                                            const QFileInfo& fileInfo) {
     // protection against recursion
     const auto canonicalFilePath = fileInfo.canonicalFilePath();
     if (processedFiles.contains(canonicalFilePath)) return;
@@ -945,16 +951,15 @@ void TrackPlaylistProxyModel::loadLocalFile(MetadataFields::EntryMetadataList &n
             loadLocalPlaylist(newTracks, processedFiles, fileUrl, file.readAll());
             return;
         }
-        newTracks.push_back(
-            {{{MetadataFields::ElementTypeRole, PlayerUtils::FileName}, {MetadataFields::ResourceRole, fileUrl}},
-             {},
-             {}});
+        auto entry = Metadata::TrackFields();
+        entry.insert(Metadata::Fields::ElementType, PlayerUtils::FileName);
+        entry.insert(Metadata::Fields::ResourceUrl, fileUrl);
+        newTracks.emplace_back(Metadata::EntryFields{entry, {}, {}});
     }
 }
 
-void TrackPlaylistProxyModel::loadLocalPlaylist(MetadataFields::EntryMetadataList &newTracks,
-                                                QSet<QString> &processedFiles, const QUrl &fileName,
-                                                const QByteArray &fileContent) {
+void TrackPlaylistProxyModel::loadLocalPlaylist(Metadata::EntryFieldsList& newTracks, QSet<QString>& processedFiles,
+                                                const QUrl& fileName, const QByteArray& fileContent) {
     QList<QUrl> listOfUrls = PlaylistParser::fromPlaylist(fileName, fileContent);
 
     const int filtered = filterLocalPlaylist(listOfUrls, fileName);
@@ -962,37 +967,37 @@ void TrackPlaylistProxyModel::loadLocalPlaylist(MetadataFields::EntryMetadataLis
         tpp->m_partiallyLoaded = true;
     }
 
-    for (const QUrl &oneUrl : std::as_const(listOfUrls)) {
+    for (const QUrl& oneUrl : std::as_const(listOfUrls)) {
         if (oneUrl.isLocalFile()) {
             const QFileInfo fileInfo(oneUrl.toLocalFile());
             loadLocalFile(newTracks, processedFiles, fileInfo);
         } else {
-            newTracks.push_back(
-                {{{{MetadataFields::ElementTypeRole, PlayerUtils::FileName}, {MetadataFields::ResourceRole, oneUrl}}},
-                 {},
-                 {}});
+            auto entry = Metadata::TrackFields();
+            entry.insert(Metadata::Fields::ElementType, PlayerUtils::FileName);
+            entry.insert(Metadata::Fields::ResourceUrl, oneUrl);
+            newTracks.emplace_back(Metadata::EntryFields{entry, {}, {}});
         }
     }
 }
 
-void TrackPlaylistProxyModel::loadLocalDirectory(MetadataFields::EntryMetadataList &newTracks,
-                                                 QSet<QString> &processedFiles, const QUrl &dirName) {
+void TrackPlaylistProxyModel::loadLocalDirectory(Metadata::EntryFieldsList& newTracks, QSet<QString>& processedFiles,
+                                                 const QUrl& dirName) {
     const QDir dirInfo(dirName.toLocalFile());
     const auto fileInfoList =
         dirInfo.entryInfoList(QDir::NoDotAndDotDot | QDir::Readable | QDir::Files | QDir::Dirs, QDir::Name);
 
-    for (const auto &fileInfo : fileInfoList) {
+    for (const auto& fileInfo : fileInfoList) {
         loadLocalFile(newTracks, processedFiles, fileInfo);
     }
 }
 
-int TrackPlaylistProxyModel::filterLocalPlaylist(QList<QUrl> &result, const QUrl &playlistUrl) {
+int TrackPlaylistProxyModel::filterLocalPlaylist(QList<QUrl>& result, const QUrl& playlistUrl) {
     int filtered = 0;
 
     for (auto iterator = result.begin(); iterator != result.end();) {
         bool exists = true;
 
-        auto &url = *iterator;
+        auto& url = *iterator;
         if (url.isLocalFile()) {
             QString file = url.toLocalFile();
 

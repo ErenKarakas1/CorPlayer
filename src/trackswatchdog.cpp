@@ -11,18 +11,18 @@ public:
 
     TrackDatabase m_trackDb;
 
-    MetadataFields::ListTrackMetadataField m_newTracks;
+    QList<Metadata::TrackFields> m_newTracks;
 };
 
-TracksWatchdog::TracksWatchdog(QObject *parent) : QObject(parent), tw(std::make_unique<TracksWatchdogPrivate>()) {}
+TracksWatchdog::TracksWatchdog(QObject* parent) : QObject(parent), tw(std::make_unique<TracksWatchdogPrivate>()) {}
 
 TracksWatchdog::~TracksWatchdog() = default;
 
-void TracksWatchdog::initDatabase(const std::shared_ptr<DbConnectionPool> &dbConnectionPool) const {
+void TracksWatchdog::initDatabase(const std::shared_ptr<DbConnectionPool>& dbConnectionPool) const {
     tw->m_trackDb.initialize(DbConnection{dbConnectionPool});
 }
 
-void TracksWatchdog::addNewUrl(const QUrl &entryUrl, const PlayerUtils::PlaylistEntryType databaseIdType) {
+void TracksWatchdog::addNewUrl(const QUrl& entryUrl, const PlayerUtils::PlaylistEntryType databaseIdType) {
     if (databaseIdType == PlayerUtils::Track || databaseIdType == PlayerUtils::FileName) {
         const auto newId = tw->m_trackDb.fetchTrackIdFromFileName(entryUrl);
 
@@ -39,7 +39,7 @@ void TracksWatchdog::addNewUrl(const QUrl &entryUrl, const PlayerUtils::Playlist
     }
 }
 
-void TracksWatchdog::addTrackByLocalFile(const QUrl &fileName) {
+void TracksWatchdog::addTrackByLocalFile(const QUrl& fileName) {
     if (fileName.isLocalFile() || fileName.scheme().isEmpty()) {
         auto newTrack = tw->m_fileScanner.scanFile(fileName);
 

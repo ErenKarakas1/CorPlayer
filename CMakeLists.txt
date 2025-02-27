@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.29)
 project(CorPlayer VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -9,65 +9,31 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_LINK_DEPENDS_NO_SHARED ON)
 
 set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml)
+set(QT_QML_GENERATE_QMLLS_INI ON)
 
-find_package(Qt6 6.7 REQUIRED COMPONENTS Quick Multimedia Widgets Gui Sql)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Quick Multimedia Widgets Gui Sql)
 find_package(ZLIB REQUIRED)
 find_package(TagLib 2.0.2 REQUIRED)
 
-qt_standard_project_setup(REQUIRES 6.7)
+qt_standard_project_setup(REQUIRES 6.8)
+qt_policy(set QTP0004 NEW)
 
 option(USE_PCH "Use precompiled headers" OFF)
 option(BUILD_TESTS "Build tests" OFF)
 
 add_subdirectory(src)
 
-add_compile_options(
-    -Wall
-    -Wextra
-    -Wpedantic
-    -Wunused
-    -Wshadow
-    -Wundef
-    -Wuninitialized
-    -Wredundant-decls
-    -Wcast-align
-    -Winit-self
-    -Wmissing-include-dirs
-    -Wstrict-overflow=2
-    -Wunused-parameter
-    -Wdisabled-optimization
-    -Woverloaded-virtual
-    -Wold-style-cast
-    -Winvalid-pch
-    -Wnon-virtual-dtor
-    -Wconversion
-    -Wsign-conversion
-    -Wmisleading-indentation
-    -Wduplicated-cond
-    -Wduplicated-branches
-    -Wlogical-op
-    -Wnull-dereference
-    -Wdouble-promotion
-    -Wuseless-cast
-    -Wformat=2
-    -Wimplicit-fallthrough
-    -fpch-preprocess
+add_compile_options(-Wall -Wextra -Wpedantic -Wunused -Wshadow -Wundef -Wuninitialized -Wredundant-decls -Wcast-align -Winit-self -Wmissing-include-dirs
+    -Wstrict-overflow=2 -Wunused-parameter -Wdisabled-optimization -Woverloaded-virtual -Wold-style-cast -Wcast-qual -Wmissing-declarations
+    -Wstrict-null-sentinel -Wsign-promo -Wpessimizing-move -Wredundant-move -Wnoexcept -Wctor-dtor-privacy -Wswitch-default -Winline -Winvalid-pch
+    -Wnon-virtual-dtor -Wconversion -Wsign-conversion -Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference
+    -Wdouble-promotion -Wuseless-cast -Wformat=2 -Wimplicit-fallthrough -fpch-preprocess
 )
 
 add_definitions(
-    -DQT_STRICT_ITERATORS
-    -DQT_NO_CAST_FROM_BYTEARRAY
-    -DQT_USE_QSTRINGBUILDER
-    -DQT_NO_URL_CAST_FROM_STRING
-    -DQT_NO_CAST_FROM_ASCII
-    -DQT_NO_CAST_TO_ASCII
-    -DQT_ASCII_CAST_WARNINGS
-    -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT
-    -DQT_NO_FOREACH
-    -DQT_NO_KEYWORDS
-    -DQT_NO_SIGNALS_SLOTS_KEYWORDS
-    -DQT_DISABLE_DEPRECATED_UP_TO=0x060700
-    -DQT_ENABLE_STRICT_MODE_UP_TO=0x060700
+    -DQT_STRICT_ITERATORS -DQT_NO_CAST_FROM_BYTEARRAY -DQT_USE_QSTRINGBUILDER -DQT_NO_URL_CAST_FROM_STRING -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII
+    -DQT_ASCII_CAST_WARNINGS -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT -DQT_NO_FOREACH -DQT_NO_KEYWORDS -DQT_NO_SIGNALS_SLOTS_KEYWORDS
+    -DQT_DISABLE_DEPRECATED_UP_TO=0x070000 -DQT_ENABLE_STRICT_MODE_UP_TO=0x070000
 )
 
 set(PROJECT_SOURCES ${PROJECT_SOURCES} src/main.cpp)

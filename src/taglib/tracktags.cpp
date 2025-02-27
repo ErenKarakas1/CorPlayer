@@ -4,10 +4,10 @@ class TrackTagsPrivate {
 public:
     QString m_fileName;
     QByteArray m_coverImage;
-    QMultiMap<MetadataFields::ColumnsRoles, QVariant> m_roleMapping;
+    QMultiMap<Metadata::Fields, QVariant> m_fieldMapping;
 };
 
-TrackTags::TrackTags(const QString &fileName) : tt(std::make_unique<TrackTagsPrivate>()) {
+TrackTags::TrackTags(const QString& fileName) : tt(std::make_unique<TrackTagsPrivate>()) {
     tt->m_fileName = fileName;
 }
 
@@ -21,25 +21,25 @@ QByteArray TrackTags::coverImage() const {
     return tt->m_coverImage;
 }
 
-const QMultiMap<MetadataFields::ColumnsRoles, QVariant> &TrackTags::roleMapping() const {
-    return tt->m_roleMapping;
+const QMultiMap<Metadata::Fields, QVariant>& TrackTags::fieldMapping() const {
+    return tt->m_fieldMapping;
 }
 
-QVariant TrackTags::value(const MetadataFields::ColumnsRoles role) const {
-    return tt->m_roleMapping.value(role);
+QVariant TrackTags::value(const Metadata::Fields field) const {
+    return tt->m_fieldMapping.value(field);
 }
 
-void TrackTags::add(const MetadataFields::ColumnsRoles role, const QVariant &value) const {
-    if (tt->m_roleMapping.values(role).contains(value)) return;
+void TrackTags::add(const Metadata::Fields field, const QVariant& value) const {
+    if (tt->m_fieldMapping.values(field).contains(value)) return;
 
-    tt->m_roleMapping.insert(role, value);
+    tt->m_fieldMapping.insert(field, value);
 }
 
-void TrackTags::addCoverImage(const QByteArray &image) const {
+void TrackTags::addCoverImage(const QByteArray& image) const {
     if (image.isEmpty()) {
-        add(MetadataFields::HasEmbeddedCover, false);
+        add(Metadata::Fields::HasEmbeddedCover, false);
     } else {
-        add(MetadataFields::HasEmbeddedCover, true);
+        add(Metadata::Fields::HasEmbeddedCover, true);
         tt->m_coverImage = image;
     }
 }
