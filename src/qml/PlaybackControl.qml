@@ -1,22 +1,21 @@
+import CorPlayer
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import CorPlayer
-
-import "components"
 
 FocusScope {
     id: playbackControl
 
-    readonly property int duration: CorPlayer.trackManager.trackDuration
-    readonly property bool isPlaying: CorPlayer.playerManager.musicPlaying
+    readonly property int duration: CorPlayer.trackManager.duration
+    readonly property bool isPlaying: CorPlayer.playerManager.isPlaying
     readonly property int repeatMode: CorPlayer.trackPlaylistProxyModel.repeatMode
     readonly property int shuffleMode: CorPlayer.trackPlaylistProxyModel.shuffleMode
-    readonly property bool playEnabled: CorPlayer.playerManager.playControlEnabled
-    readonly property int position: CorPlayer.trackManager.trackPosition
+    readonly property bool playEnabled: CorPlayer.playerManager.canPlay
+    readonly property int position: CorPlayer.trackManager.position
     readonly property bool seekable: CorPlayer.mediaPlayer.isSeekable
-    readonly property bool skipForwardEnabled: CorPlayer.playerManager.skipForwardControlEnabled
-    readonly property bool skipBackwardEnabled: CorPlayer.playerManager.skipBackwardControlEnabled
+    readonly property bool skipForwardEnabled: CorPlayer.playerManager.canSkipForward
+    readonly property bool skipBackwardEnabled: CorPlayer.playerManager.canSkipBackward
 
     property bool muted
 
@@ -33,73 +32,80 @@ FocusScope {
     onPlay: CorPlayer.trackManager.playPause()
     onPlayNext: CorPlayer.trackPlaylistProxyModel.skipNextTrack(PlayerUtils.Manual)
     onPlayPrevious: CorPlayer.trackPlaylistProxyModel.skipPreviousTrack(CorPlayer.mediaPlayer.position)
-    onSeek: position => CorPlayer.trackManager.trackSeek(position)
-
+    onSeek: (position) => {
+        return CorPlayer.trackManager.seek(position);
+    }
     onChangeRepeatMode: CorPlayer.trackPlaylistProxyModel.setRepeatMode((repeatMode + 1) % 3)
     onChangeShuffleMode: CorPlayer.trackPlaylistProxyModel.setShuffleMode((shuffleMode + 1) % 2)
 
-    ColumnLayout {
+    Column {
         id: playbackControlLayout
-        anchors.fill: parent
+
+        width: parent.width
         anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
 
         DurationSlider {
             id: durationSlider
 
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-            Layout.preferredHeight: 1
-            Layout.maximumWidth: parent.width * 0.7
+            implicitWidth: parent.width * 0.8
+            anchors.horizontalCenter: parent.horizontalCenter
 
             duration: playbackControl.duration
             playEnabled: playbackControl.playEnabled
             position: playbackControl.position
             seekable: playbackControl.seekable
 
-            onSeek: position => playbackControl.seek(position)
+            onSeek: (position) => {
+                return playbackControl.seek(position);
+            }
         }
 
         RowLayout {
             id: playbackControlRow
 
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
-            Layout.preferredHeight: 4
+            anchors.horizontalCenter: parent.horizontalCenter
 
-            ToolButton {
+            IconButton {
                 id: shuffleButton
 
                 enabled: playbackControl.playEnabled
                 icon.name: playbackControl.shuffleMode === 0 ? "qrc:/icons/fa_no_shuffle" : "qrc:/icons/fa_shuffle"
-                onClicked: playbackControl.changeShuffleMode();
+                tooltipText: "Shuffle"
+                onClicked: playbackControl.changeShuffleMode()
             }
 
-            ToolButton {
+            IconButton {
                 id: goBackwardButton
 
-                enabled: skipBackwardEnabled
+                enabled: playbackControl.skipBackwardEnabled
                 icon.name: "qrc:/icons/fa_backward"
+                tooltipText: "Previous"
                 onClicked: playbackControl.playPrevious()
             }
 
-            MaterialButton {
+            // TODO: skip next changes icon momentarily
+            IconButtonWithBackground {
                 id: playPauseButton
 
                 Layout.alignment: Qt.AlignHCenter
 
                 enabled: playbackControl.playEnabled
                 icon.name: playbackControl.isPlaying ? "qrc:/icons/fa_pause" : "qrc:/icons/fa_play"
+                tooltipText: playbackControl.isPlaying ? "Pause" : "Play"
                 onClicked: playbackControl.isPlaying ? playbackControl.pause() : playbackControl.play()
             }
 
-            ToolButton {
+            IconButton {
                 id: goForwardButton
 
-                enabled: skipForwardEnabled
+                enabled: playbackControl.skipForwardEnabled
                 icon.name: "qrc:/icons/fa_forward"
+                tooltipText: "Next"
                 onClicked: playbackControl.playNext()
             }
 
-            ToolButton {
+            IconButton {
                 id: repeatButton
 
                 enabled: playbackControl.playEnabled
@@ -108,8 +114,16 @@ FocusScope {
                         0: "qrc:/icons/fa_no_repeat",
                         1: "qrc:/icons/fa_track_repeat",
                         2: "qrc:/icons/fa_playlist_repeat"
-                    }
-                    return map[playbackControl.repeatMode]
+                    };
+                    return map[playbackControl.repeatMode];
+                }
+                tooltipText: {
+                    const map = {
+                        0: "Repeat Track",
+                        1: "Repeat Playlist",
+                        2: "Disable Repeat"
+                    };
+                    return map[playbackControl.repeatMode];
                 }
                 onClicked: playbackControl.changeRepeatMode()
             }

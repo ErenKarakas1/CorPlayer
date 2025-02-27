@@ -14,19 +14,25 @@ FocusScope {
 
     RowLayout {
         id: playbackControlBarLayout
-        anchors.fill: parent
-        anchors {
-            rightMargin: 40
-            leftMargin: 20
-        }
 
-        TrackInfo {
-            id: trackInfo
+        anchors.fill: parent
+        anchors.margins: 20
+
+        Loader {
+            id: trackInfoLoader
 
             Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.preferredWidth: 1
+
+            sourceComponent: TrackInfo {
+                id: trackInfo
+
+                title: CorPlayer.trackManager?.trackMetadata?.title ?? ""
+                artist: CorPlayer.trackManager?.trackMetadata?.artist ?? ""
+                image: CorPlayer.trackManager?.trackMetadata?.coverUrl ?? ""
+            }
         }
 
         PlaybackControl {
@@ -43,7 +49,7 @@ FocusScope {
         VolumeControl {
             id: volumeControl
 
-            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.preferredWidth: 1

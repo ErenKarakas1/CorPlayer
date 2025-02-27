@@ -1,4 +1,4 @@
-import CorPlayer
+import "../.."
 
 import QtQuick
 import QtQuick.Controls
@@ -7,19 +7,32 @@ import QtQuick.Layouts
 Item {
     id: trackInfo
 
-    property string title: CorPlayer.metadataManager.title
-    property string artist: CorPlayer.metadataManager.artist
+    property string title
+    property string artist
+    property string image
+
+    onImageChanged: {
+        if (image && image !== "") {
+            trackImage.source = image.toString().startsWith("image://cover/")
+                ? image : "image://cover/" + image;
+        } else {
+            trackImage.source = trackImage.fallback;
+        }
+    }
 
     RowLayout {
         spacing: 10
 
-        //wip
-        Rectangle {
-            id: albumArt
+        ImageWithFallback {
+            id: trackImage
 
-            width: 50
-            height: 50
-            color: "red"
+            sourceSize {
+                width: 50
+                height: 50
+            }
+            fillMode: Image.PreserveAspectFit
+            async: true
+            mipmap: true
         }
 
         //wip
@@ -32,7 +45,7 @@ Item {
             Text {
                 id: trackTitle
 
-                text: title
+                text: trackInfo.title
                 font.bold: true
                 color: "white"
             }
@@ -40,7 +53,7 @@ Item {
             Text {
                 id: trackArtist
 
-                text: artist
+                text: trackInfo.artist
                 color: "white"
             }
         }

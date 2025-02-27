@@ -1,5 +1,7 @@
 #include "corplayer.h"
 
+#include "asynccoverprovider.h"
+
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDir>
@@ -7,7 +9,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     QApplication::setApplicationName(QStringLiteral("CorPlayer"));
     QApplication::setOrganizationName(QStringLiteral("Corp"));
@@ -16,6 +18,7 @@ int main(int argc, char *argv[]) {
     CorPlayer corPlayer;
     const auto qmlUrl = QStringLiteral("CorPlayer");
 
+    engine.addImageProvider(QStringLiteral("cover"), new AsyncCoverProvider);
     engine.rootContext()->setContextProperty(qmlUrl, &corPlayer);
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
