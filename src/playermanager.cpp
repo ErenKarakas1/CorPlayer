@@ -2,58 +2,58 @@
 
 PlayerManager::PlayerManager(QObject *parent) : QObject(parent) {}
 
-bool PlayerManager::playControlEnabled() const {
-    return m_currentTrack.isValid();
-}
-
-bool PlayerManager::skipBackwardControlEnabled() const {
-    return m_previousTrack.isValid();
-}
-
-bool PlayerManager::skipForwardControlEnabled() const {
-    return m_nextTrack.isValid();
-}
-
-bool PlayerManager::musicPlaying() const {
+bool PlayerManager::isPlaying() const {
     return m_isInPlayingState;
 }
 
-void PlayerManager::playerPausedOrStopped() {
-    if (m_isInPlayingState) {
-        const auto oldPreviousTrackIsEnabled = skipBackwardControlEnabled();
-        const auto oldNextTrackIsEnabled = skipForwardControlEnabled();
+bool PlayerManager::canPlay() const {
+    return m_currentTrack.isValid();
+}
 
-        m_isInPlayingState = false;
-        Q_EMIT musicPlayingChanged();
+bool PlayerManager::canSkipBackward() const {
+    return m_previousTrack.isValid();
+}
+
+bool PlayerManager::canSkipForward() const {
+    return m_nextTrack.isValid();
+}
+
+void PlayerManager::playing() {
+    if (!m_isInPlayingState) {
+        const auto oldPreviousTrackIsEnabled = canSkipBackward();
+        const auto oldNextTrackIsEnabled = canSkipForward();
+
+        m_isInPlayingState = true;
+        Q_EMIT isPlayingChanged();
 
         if (!m_currentTrack.isValid()) return;
 
-        if (oldNextTrackIsEnabled != skipForwardControlEnabled()) {
-            Q_EMIT skipForwardControlEnabledChanged();
+        if (oldNextTrackIsEnabled != canSkipForward()) {
+            Q_EMIT canSkipForwardChanged();
         }
 
-        if (oldPreviousTrackIsEnabled != skipBackwardControlEnabled()) {
-            Q_EMIT skipBackwardControlEnabledChanged();
+        if (oldPreviousTrackIsEnabled != canSkipBackward()) {
+            Q_EMIT canSkipBackwardChanged();
         }
     }
 }
 
-void PlayerManager::playerPlaying() {
-    if (!m_isInPlayingState) {
-        const auto oldPreviousTrackIsEnabled = skipBackwardControlEnabled();
-        const auto oldNextTrackIsEnabled = skipForwardControlEnabled();
+void PlayerManager::pausedOrStopped() {
+    if (m_isInPlayingState) {
+        const auto oldPreviousTrackIsEnabled = canSkipBackward();
+        const auto oldNextTrackIsEnabled = canSkipForward();
 
-        m_isInPlayingState = true;
-        Q_EMIT musicPlayingChanged();
+        m_isInPlayingState = false;
+        Q_EMIT isPlayingChanged();
 
         if (!m_currentTrack.isValid()) return;
 
-        if (oldNextTrackIsEnabled != skipForwardControlEnabled()) {
-            Q_EMIT skipForwardControlEnabledChanged();
+        if (oldNextTrackIsEnabled != canSkipForward()) {
+            Q_EMIT canSkipForwardChanged();
         }
 
-        if (oldPreviousTrackIsEnabled != skipBackwardControlEnabled()) {
-            Q_EMIT skipBackwardControlEnabledChanged();
+        if (oldPreviousTrackIsEnabled != canSkipBackward()) {
+            Q_EMIT canSkipBackwardChanged();
         }
     }
 }
@@ -61,48 +61,48 @@ void PlayerManager::playerPlaying() {
 void PlayerManager::setPreviousTrack(const QPersistentModelIndex &previousTrack) {
     if (m_previousTrack == previousTrack) return;
 
-    const bool oldValueSkipBackward = skipBackwardControlEnabled();
+    const bool oldCanSkipBackward = canSkipBackward();
 
     m_previousTrack = previousTrack;
     Q_EMIT previousTrackChanged();
 
-    if (oldValueSkipBackward != skipBackwardControlEnabled()) {
-        Q_EMIT skipBackwardControlEnabledChanged();
+    if (oldCanSkipBackward != canSkipBackward()) {
+        Q_EMIT canSkipBackwardChanged();
     }
 }
 
 void PlayerManager::setCurrentTrack(const QPersistentModelIndex &currentTrack) {
     if (m_currentTrack == currentTrack) return;
 
-    const bool oldPlayControlEnabled = playControlEnabled();
+    const bool oldCanPlay = canPlay();
 
     m_currentTrack = currentTrack;
     Q_EMIT currentTrackChanged();
 
-    if (oldPlayControlEnabled != playControlEnabled()) {
-        Q_EMIT playControlEnabledChanged();
+    if (oldCanPlay != canPlay()) {
+        Q_EMIT canPlayChanged();
     }
 }
 
 void PlayerManager::setNextTrack(const QPersistentModelIndex &nextTrack) {
     if (m_nextTrack == nextTrack) return;
 
-    const bool oldValueSkipForward = skipForwardControlEnabled();
+    const bool oldCanSkipForward = canSkipForward();
 
     m_nextTrack = nextTrack;
     Q_EMIT nextTrackChanged();
 
-    if (oldValueSkipForward != skipForwardControlEnabled()) {
-        Q_EMIT skipForwardControlEnabledChanged();
+    if (oldCanSkipForward != canSkipForward()) {
+        Q_EMIT canSkipForwardChanged();
     }
-}
-
-QPersistentModelIndex PlayerManager::previousTrack() const {
-    return m_previousTrack;
 }
 
 QPersistentModelIndex PlayerManager::currentTrack() const {
     return m_currentTrack;
+}
+
+QPersistentModelIndex PlayerManager::previousTrack() const {
+    return m_previousTrack;
 }
 
 QPersistentModelIndex PlayerManager::nextTrack() const {

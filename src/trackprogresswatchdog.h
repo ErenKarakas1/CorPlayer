@@ -11,7 +11,7 @@ class TrackProgressWatchdog : public QObject {
     Q_PROPERTY(QString progressDuration READ progressDuration NOTIFY progressDurationChanged)
 
 public:
-    explicit TrackProgressWatchdog(QObject *parent = nullptr);
+    explicit TrackProgressWatchdog(QObject* parent = nullptr);
     ~TrackProgressWatchdog() override;
     [[nodiscard]] int position() const;
     [[nodiscard]] QString progressDuration() const;

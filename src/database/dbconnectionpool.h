@@ -14,18 +14,18 @@ class DbConnectionPool {
 
 public:
     explicit DbConnectionPool(QString databaseName);
-    static std::shared_ptr<DbConnectionPool> create(const QString &databaseName);
+    static std::shared_ptr<DbConnectionPool> create(const QString& databaseName);
     [[nodiscard]] bool hasConnection() const;
 
 private:
     friend class DbConnection;
 
     QString m_databaseName;
-    QThreadStorage<CorDatabase *> m_threadConnections;
+    QThreadStorage<CorDatabase*> m_threadConnections;
 
     bool createConnection();
 
-    [[nodiscard]] CorDatabase *acquire() const;
+    [[nodiscard]] CorDatabase* acquire() const;
     void release();
 };
 

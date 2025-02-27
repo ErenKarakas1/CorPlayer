@@ -1,20 +1,20 @@
 #include "sqlquery.h"
 
-SqlQuery::SqlQuery(const QSqlDatabase &db, const QString &statement) : QSqlQuery(db) {
+SqlQuery::SqlQuery(const QSqlDatabase& db, const QString& statement) : QSqlQuery(db) {
     setForwardOnly(true);
     prepare(statement);
 }
 
-void SqlQuery::bindValue(const QString &placeholder, const QVariant &value) {
+void SqlQuery::bindValue(const QString& placeholder, const QVariant& value) {
     m_boundValues.insert(placeholder, value);
     QSqlQuery::bindValue(placeholder, value);
 }
 
-void SqlQuery::bindStringValue(const QString &placeholder, const QString &value) {
+void SqlQuery::bindStringValue(const QString& placeholder, const QString& value) {
     bindValue(placeholder, value.isNull() ? QStringLiteral("") : value);
 }
 
-void SqlQuery::bindBoolValue(const QString &placeholder, const bool value) {
+void SqlQuery::bindBoolValue(const QString& placeholder, const bool value) {
     bindValue(placeholder, value ? 1 : 0);
 }
 
@@ -24,7 +24,7 @@ bool SqlQuery::exec() {
 
     const QList<QString> keys = m_boundValues.keys();
 
-    for (const QString &key : keys) {
+    for (const QString& key : keys) {
         m_lastQuery.replace(key, m_boundValues.value(key).toString());
     }
 

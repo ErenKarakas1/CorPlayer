@@ -5,12 +5,12 @@
 
 class CorDatabase {
 public:
-    CorDatabase(const QString &databaseFileName, const QString &connectionName);
-    CorDatabase(const CorDatabase &other, const QString &connectionName);
+    CorDatabase(const QString& databaseFileName, const QString& connectionName);
+    CorDatabase(const CorDatabase& other, const QString& connectionName);
     ~CorDatabase();
 
-    CorDatabase(const CorDatabase &other) = delete;
-    CorDatabase(const CorDatabase &&other) = delete;
+    CorDatabase(const CorDatabase& other) = delete;
+    CorDatabase(const CorDatabase&& other) = delete;
 
     [[nodiscard]] QString name() const;
     [[nodiscard]] bool open() const;

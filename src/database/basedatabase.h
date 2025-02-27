@@ -7,7 +7,7 @@ class BaseDatabase {
 public:
     virtual ~BaseDatabase() = default;
     void maintenance() const;
-    virtual void initialize(const DbConnection &dbConnection);
+    virtual void initialize(const DbConnection& dbConnection);
 
 protected:
     [[nodiscard]] QSqlDatabase db() const;

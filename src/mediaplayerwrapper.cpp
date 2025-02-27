@@ -17,7 +17,7 @@ public:
     bool m_queuedStatusUpdates = false; // Thread safe status updates
 };
 
-MediaPlayerWrapper::MediaPlayerWrapper(QObject *parent)
+MediaPlayerWrapper::MediaPlayerWrapper(QObject* parent)
     : QObject(parent), mp(std::make_unique<MediaPlayerWrapperPrivate>()) {
     mp->m_player.setAudioOutput(&mp->m_audioOutput);
 
@@ -80,7 +80,7 @@ bool MediaPlayerWrapper::isSeekable() const {
     return mp->m_player.isSeekable();
 }
 
-void MediaPlayerWrapper::setSource(const QUrl &newSource) const {
+void MediaPlayerWrapper::setSource(const QUrl& newSource) const {
     mp->m_player.setSource(newSource);
 }
 
@@ -102,8 +102,8 @@ void MediaPlayerWrapper::stop() const {
 }
 
 void MediaPlayerWrapper::setVolume(const qreal newVolume) const {
-    const qreal linearVolume =
-        QtAudio::convertVolume(newVolume / static_cast<qreal>(100.0), QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
+    const qreal linearVolume = QtAudio::convertVolume(newVolume / static_cast<qreal>(100.0),
+                                                      QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
 
     mp->m_audioOutput.setVolume(linearVolume);
 }
@@ -131,15 +131,15 @@ void MediaPlayerWrapper::seek(const qint64 newPosition) const {
 
 void MediaPlayerWrapper::trackStateChanged() {
     switch (mp->m_player.playbackState()) {
-        case QMediaPlayer::PlaybackState::StoppedState:
-            Q_EMIT stopped();
-            break;
-        case QMediaPlayer::PlaybackState::PlayingState:
-            Q_EMIT playing();
-            break;
-        case QMediaPlayer::PlaybackState::PausedState:
-            Q_EMIT paused();
-            break;
+    case QMediaPlayer::PlaybackState::StoppedState:
+        Q_EMIT stopped();
+        break;
+    case QMediaPlayer::PlaybackState::PlayingState:
+        Q_EMIT playing();
+        break;
+    case QMediaPlayer::PlaybackState::PausedState:
+        Q_EMIT paused();
+        break;
     }
 }
 

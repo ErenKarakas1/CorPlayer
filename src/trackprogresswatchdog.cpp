@@ -2,7 +2,7 @@
 
 #include <QTime>
 
-TrackProgressWatchdog::TrackProgressWatchdog(QObject *parent) : QObject(parent) {}
+TrackProgressWatchdog::TrackProgressWatchdog(QObject* parent) : QObject(parent) {}
 
 TrackProgressWatchdog::~TrackProgressWatchdog() = default;
 

@@ -5,12 +5,12 @@
 
 #include <QDebug>
 
-DatabaseManager &DatabaseManager::instance() {
+DatabaseManager& DatabaseManager::instance() {
     static DatabaseManager instance;
     return instance;
 }
 
-void DatabaseManager::initialize(const QString &databasePath) {
+void DatabaseManager::initialize(const QString& databasePath) {
     m_connectionPool = DbConnectionPool::create(databasePath);
 
     const DbSchema schema(DbConnection{m_connectionPool});

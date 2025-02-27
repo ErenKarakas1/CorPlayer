@@ -24,7 +24,7 @@ class MediaPlayerWrapper : public QObject {
     Q_PROPERTY(bool isSeekable READ isSeekable NOTIFY seekableChanged)
 
 public:
-    explicit MediaPlayerWrapper(QObject *parent = nullptr);
+    explicit MediaPlayerWrapper(QObject* parent = nullptr);
     ~MediaPlayerWrapper() override;
     [[nodiscard]] QUrl source() const;
     [[nodiscard]] QMediaPlayer::MediaStatus status() const;
@@ -51,7 +51,7 @@ Q_SIGNALS:
     void stopped();
 
 public Q_SLOTS:
-    void setSource(const QUrl &newSource) const;
+    void setSource(const QUrl& newSource) const;
     void play() const;
     void pause() const;
     void stop() const;

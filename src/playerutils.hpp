@@ -62,7 +62,7 @@ enum FilterType {
 
 Q_ENUM_NS(FilterType)
 
-bool isPlaylist(const QMimeType &mimeType);
+bool isPlaylist(const QMimeType& mimeType);
 
 template <typename T>
 concept HasToUtf8 = requires(T t) {
@@ -70,7 +70,7 @@ concept HasToUtf8 = requires(T t) {
 };
 
 template <typename... Columns>
-QString calculateTrackHash(const Columns &...columns) {
+QString calculateTrackHash(const Columns&... columns) {
     static_assert((HasToUtf8<Columns> && ...), "All columns must have a toUtf8() method returning QByteArray");
 
     QCryptographicHash hash{QCryptographicHash::Algorithm::Md5};

@@ -1,7 +1,7 @@
-#include "playerutils.h"
+#include "playerutils.hpp"
 
 namespace PlayerUtils {
-bool isPlaylist(const QMimeType &mimeType) {
+bool isPlaylist(const QMimeType& mimeType) {
     return mimeType.inherits(QStringLiteral("audio/x-ms-wax")) || mimeType.inherits(QStringLiteral("audio/x-scpls")) ||
            mimeType.inherits(QStringLiteral("audio/x-mpegurl")) || mimeType.inherits(QStringLiteral("audio/mpegurl")) ||
            mimeType.inherits(QStringLiteral("application/mpegurl")) ||

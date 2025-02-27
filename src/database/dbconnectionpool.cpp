@@ -10,7 +10,7 @@
 
 DbConnectionPool::DbConnectionPool(QString databaseName) : m_databaseName{std::move(databaseName)} {}
 
-std::shared_ptr<DbConnectionPool> DbConnectionPool::create(const QString &databaseName) {
+std::shared_ptr<DbConnectionPool> DbConnectionPool::create(const QString& databaseName) {
     return std::make_shared<DbConnectionPool>(databaseName);
 }
 
@@ -47,7 +47,7 @@ bool DbConnectionPool::createConnection() {
     return true;
 }
 
-CorDatabase *DbConnectionPool::acquire() const {
+CorDatabase* DbConnectionPool::acquire() const {
     if (!hasConnection()) {
         qWarning() << "DbConnectionPool::acquire: No connection available";
     }

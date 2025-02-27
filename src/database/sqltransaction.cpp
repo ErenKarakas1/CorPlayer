@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QSqlDatabase>
 
-SqlTransaction::SqlTransaction(const QSqlDatabase &db) : m_db(db) {
+SqlTransaction::SqlTransaction(const QSqlDatabase& db) : m_db(db) {
     m_db.transaction();
 }
 

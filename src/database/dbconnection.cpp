@@ -31,7 +31,7 @@ QSqlDatabase DbConnection::db() const {
         m_connectionPool->createConnection();
     }
 
-    const CorDatabase *const dbConnection = m_connectionPool->acquire();
+    const CorDatabase* const dbConnection = m_connectionPool->acquire();
 
     if (dbConnection == nullptr) {
         qWarning() << "Could not acquire connection";

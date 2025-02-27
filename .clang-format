@@ -17,9 +17,6 @@ AlignTrailingComments:                        true
 AllowAllParametersOfDeclarationOnNextLine:    true
 AllowShortBlocksOnASingleLine:                Empty
 AllowShortFunctionsOnASingleLine:             Empty
-AllowShortEnumsOnASingleLine:                 false
-
-# We use single line if statements only for "if (condition) return;", unfortunately this is not enforceable
 AllowShortIfStatementsOnASingleLine:          WithoutElse
 
 AllowShortLambdasOnASingleLine:               Empty
@@ -29,12 +26,11 @@ SpacesInContainerLiterals:                    false
 SpacesInParentheses:                          false
 SpacesInSquareBrackets:                       false
 SpaceBeforeParens:                            ControlStatements
-PointerAlignment:                             Right
-ReferenceAlignment:                           Right
+PointerAlignment:                             Left
+ReferenceAlignment:                           Left
 EmptyLineBeforeAccessModifier:                Always
 Cpp11BracedListStyle:                         true
 SpaceBeforeCpp11BracedList:                   false
-IndentCaseLabels:                             true
 FixNamespaceComments:                         true
 KeepEmptyLinesAtTheStartOfBlocks:             false
 IncludeBlocks:                                Preserve

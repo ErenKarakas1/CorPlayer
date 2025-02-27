@@ -2,7 +2,7 @@
 
 #include <QSqlQuery>
 
-CorDatabase::CorDatabase(const QString &databaseFileName, const QString &connectionName) : m_conName{connectionName} {
+CorDatabase::CorDatabase(const QString& databaseFileName, const QString& connectionName) : m_conName{connectionName} {
     auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connectionName);
 
     if (!databaseFileName.isEmpty()) {
@@ -14,7 +14,7 @@ CorDatabase::CorDatabase(const QString &databaseFileName, const QString &connect
     database.setConnectOptions(QStringLiteral("QSQLITE_OPEN_URI;"));
 }
 
-CorDatabase::CorDatabase(const CorDatabase &other, const QString &connectionName) : m_conName{connectionName} {
+CorDatabase::CorDatabase(const CorDatabase& other, const QString& connectionName) : m_conName{connectionName} {
     QSqlDatabase::cloneDatabase(other.name(), connectionName);
 }
 

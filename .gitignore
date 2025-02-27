@@ -7,5 +7,5 @@ perf/
 .zed/
 .cache/
 *.collapsed
+*.ini
 compile_commands.json
-CMakeLists.txt.user

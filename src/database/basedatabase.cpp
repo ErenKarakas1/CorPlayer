@@ -16,7 +16,7 @@ void BaseDatabase::maintenance() const {
     }
 }
 
-void BaseDatabase::initialize(const DbConnection &dbConnection) {
+void BaseDatabase::initialize(const DbConnection& dbConnection) {
     m_dbConnection = dbConnection;
 }
 

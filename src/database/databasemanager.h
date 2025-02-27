@@ -7,11 +7,11 @@
 
 class DatabaseManager {
 public:
-    static DatabaseManager &instance();
-    void initialize(const QString &databasePath);
+    static DatabaseManager& instance();
+    void initialize(const QString& databasePath);
 
-    DatabaseManager(const DatabaseManager &) = delete;
-    DatabaseManager &operator=(const DatabaseManager &) = delete;
+    DatabaseManager(const DatabaseManager&) = delete;
+    DatabaseManager& operator=(const DatabaseManager&) = delete;
 
     [[nodiscard]] std::shared_ptr<DbConnectionPool> dbConnectionPool() const;
 
