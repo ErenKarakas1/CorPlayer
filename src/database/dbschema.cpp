@@ -1,6 +1,9 @@
-#include "dbschema.h"
+#include "database/dbschema.h"
+
+#include "database/sqlquery.h"
 
 #include <QSqlQuery>
+#include <QSqlError>
 
 DbSchema::DbSchema(const DbConnection& dbConnection, QObject* parent) : QObject(parent), m_status{DbStatus::Ok} {
     if (!dbConnection.isValid()) {
@@ -26,113 +29,150 @@ void DbSchema::setStatus(const DbStatus status) {
 
 bool DbSchema::createSchema(const QSqlDatabase& db) {
     {
-        QSqlQuery query(db);
-        const auto result = query.exec(QStringLiteral("PRAGMA foreign_keys = OFF;"));
-
-        if (!result) {
-            qWarning() << QStringLiteral("Failed to disable foreign keys.");
+        SqlQuery query{db, "PRAGMA foreign_keys = OFF;"};
+        if (!query.exec()) {
+            qWarning() << "Failed to disable foreign keys: " << query.lastError().text();
             setStatus(DbStatus::DatabaseError);
+            return false;
         }
     }
 
     {
-        QSqlQuery query(db);
-        const auto result = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS `Tracks` ("
-                                                      "`TrackID` INTEGER PRIMARY KEY AUTOINCREMENT, "
-                                                      "`FileName` TEXT NOT NULL UNIQUE, "
-                                                      "`Title` TEXT NOT NULL, "
-                                                      "`ArtistName` TEXT, "
-                                                      "`AlbumTitle` TEXT, "
-                                                      "`AlbumArtistName` TEXT, "
-                                                      "`TrackNumber` INTEGER, "
-                                                      "`DiscNumber` INTEGER, "
-                                                      "`Duration` INTEGER NOT NULL, "
-                                                      "`Genre` TEXT, "
-                                                      "`Performer` TEXT, "
-                                                      "`Composer` TEXT, "
-                                                      "`Lyricist` TEXT, "
-                                                      "`Year` INTEGER, "
-                                                      "`Channels` INTEGER, "
-                                                      "`Bitrate` INTEGER, "
-                                                      "`SampleRate` INTEGER, "
-                                                      "`HasEmbeddedCover` INTEGER, "
-                                                      "`TrackHash` TEXT UNIQUE)"));
+        const QString statement = QStringLiteral(
+            "CREATE TABLE IF NOT EXISTS `Tracks` ("
+            "   `TrackID` INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "   `FileName` TEXT NOT NULL UNIQUE,"
+            "   `Title` TEXT NOT NULL,"
+            "   `ArtistName` TEXT,"
+            "   `AlbumTitle` TEXT,"
+            "   `AlbumArtistName` TEXT,"
+            "   `TrackNumber` INTEGER,"
+            "   `DiscNumber` INTEGER,"
+            "   `Duration` INTEGER NOT NULL,"
+            "   `Genre` TEXT,"
+            "   `Performer` TEXT,"
+            "   `Composer` TEXT,"
+            "   `Lyricist` TEXT,"
+            "   `Year` INTEGER,"
+            "   `Channels` INTEGER,"
+            "   `Bitrate` INTEGER,"
+            "   `SampleRate` INTEGER,"
+            "   `HasEmbeddedCover` INTEGER,"
+            "   `DateAdded` DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP),"
+            "   `TrackHash` TEXT UNIQUE"
+            ");"
+        );
 
-        if (!result) {
-            qWarning() << QStringLiteral("Failed to create table \"Tracks\".");
+        SqlQuery query{db, statement};
+        if (!query.exec()) {
+            qWarning() << "Failed to create Tracks table: " << query.lastError().text();
             setStatus(DbStatus::DatabaseError);
+            return false;
         }
     }
 
     {
-        QSqlQuery query(db);
-        const auto result = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS `Playlists` ("
-                                                      "`PlaylistID` INTEGER PRIMARY KEY AUTOINCREMENT, "
-                                                      "`PlaylistName` TEXT NOT NULL UNIQUE)"));
+        const QString statement = QStringLiteral(
+            "CREATE TABLE IF NOT EXISTS `Playlists` ("
+            "   `PlaylistID` INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "   `PlaylistName` TEXT NOT NULL UNIQUE,"
+            "   `DateCreated` DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP),"
+            "   `LastModified` DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP)"
+            ");"
+        );
 
-        if (!result) {
-            qWarning() << QStringLiteral("Failed to create table \"Playlists\".");
+        SqlQuery query{db, statement};
+        if (!query.exec()) {
+            qWarning() << "Failed to create Playlists table: " << query.lastError().text();
             setStatus(DbStatus::DatabaseError);
+            return false;
         }
     }
 
     {
-        QSqlQuery query(db);
-        const auto result = query.exec(
-            QStringLiteral("CREATE TABLE IF NOT EXISTS `PlaylistTracks` ("
-                           "`PlaylistID` INTEGER NOT NULL, "
-                           "`TrackID` INTEGER NOT NULL, "
-                           "`TrackIndex` INTEGER NOT NULL, "
-                           "FOREIGN KEY(`PlaylistID`) REFERENCES `Playlists`(`PlaylistID`) ON DELETE CASCADE, "
-                           "FOREIGN KEY(`TrackID`) REFERENCES `Tracks`(`TrackID`) ON DELETE CASCADE, "
-                           "PRIMARY KEY(`PlaylistID`, `TrackID`))"));
+        const QString statement = QStringLiteral(
+            "CREATE TABLE IF NOT EXISTS `PlaylistTracks` ("
+            "   `PlaylistID` INTEGER NOT NULL,"
+            "   `TrackID` INTEGER NOT NULL,"
+            "   `TrackIndex` INTEGER NOT NULL,"
+            "   `DateAdded` DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP),"
+            "   PRIMARY KEY (`PlaylistID`, `TrackID`),"
+            "   FOREIGN KEY (`PlaylistID`) REFERENCES `Playlists`(`PlaylistID`)"
+            "       ON DELETE CASCADE,"
+            "   FOREIGN KEY (`TrackID`) REFERENCES `Tracks`(`TrackID`)"
+            "       ON DELETE CASCADE"
+            ");"
+        );
 
-        if (!result) {
-            qWarning() << QStringLiteral("Failed to create table \"PlaylistTracks\".");
+        SqlQuery query{db, statement};
+        if (!query.exec()) {
+            qWarning() << "Failed to create PlaylistTracks table: " << query.lastError().text();
             setStatus(DbStatus::DatabaseError);
+            return false;
+        }
+    }
+
+    // Create indexes
+    {
+        const QStringList indexStatements = {
+            "CREATE INDEX IF NOT EXISTS idx_tracks_filename ON `Tracks`(`FileName`);",
+            "CREATE INDEX IF NOT EXISTS idx_playlist_tracks_order ON `PlaylistTracks`(`PlaylistID`, `TrackIndex`);"
+        };
+
+        for (const QString& statement : indexStatements) {
+            SqlQuery query{db, statement};
+            if (!query.exec()) {
+                qWarning() << "Failed to create index: " << query.lastError().text();
+                setStatus(DbStatus::DatabaseError);
+                return false;
+            }
+        }
+    }
+
+    // Create triggers
+    {
+        const QStringList triggerStatements = {
+            "CREATE TRIGGER IF NOT EXISTS update_playlist_modified_insert "
+            "AFTER INSERT ON `PlaylistTracks` "
+            "BEGIN "
+            "   UPDATE `Playlists` "
+            "   SET `LastModified` = (CURRENT_TIMESTAMP) "
+            "   WHERE `PlaylistID` = NEW.PlaylistID; "
+            "END;",
+
+            "CREATE TRIGGER IF NOT EXISTS update_playlist_modified_delete "
+            "AFTER DELETE ON `PlaylistTracks` "
+            "BEGIN "
+            "   UPDATE `Playlists` "
+            "   SET `LastModified` = (CURRENT_TIMESTAMP) "
+            "   WHERE `PlaylistID` = OLD.PlaylistID; "
+            "END;",
+
+            "CREATE TRIGGER IF NOT EXISTS update_playlist_modified_update "
+            "AFTER UPDATE ON `PlaylistTracks` "
+            "BEGIN "
+            "   UPDATE `Playlists` "
+            "   SET `LastModified` = (CURRENT_TIMESTAMP) "
+            "   WHERE `PlaylistID` = NEW.PlaylistID; "
+            "END;"
+        };
+
+        for (const QString& statement : triggerStatements) {
+            SqlQuery query{db, statement};
+            if (!query.exec()) {
+                qWarning() << "Failed to create trigger: " << query.lastError().text();
+                setStatus(DbStatus::DatabaseError);
+                return false;
+            }
         }
     }
 
     {
-        QSqlQuery query(db);
-        const auto result = query.exec(QStringLiteral("PRAGMA foreign_keys = ON;"));
-
-        if (!result) {
-            qWarning() << QStringLiteral("Failed to enable foreign keys.");
+        SqlQuery query{db, "PRAGMA foreign_keys = ON;"};
+        if (!query.exec()) {
+            qWarning() << "Failed to enable foreign keys: " << query.lastError().text();
             setStatus(DbStatus::DatabaseError);
-        }
-    }
-
-    {
-        QSqlQuery query(db);
-        const auto result =
-            query.exec(QStringLiteral("CREATE INDEX IF NOT EXISTS `TrackIndex` ON `Tracks`(`TrackHash`)"));
-
-        if (!result) {
-            qWarning() << QStringLiteral("Failed to create index \"TrackIndex\".");
-            setStatus(DbStatus::DatabaseError);
-        }
-    }
-
-    {
-        QSqlQuery query(db);
-        const auto result = query.exec(
-            QStringLiteral("CREATE INDEX IF NOT EXISTS `PlaylistIndex` ON `Playlists`(`PlaylistID`, `PlaylistName`)"));
-
-        if (!result) {
-            qWarning() << QStringLiteral("Failed to create index \"PlaylistIndex\".");
-            setStatus(DbStatus::DatabaseError);
-        }
-    }
-
-    {
-        QSqlQuery query(db);
-        const auto result = query.exec(QStringLiteral(
-            "CREATE INDEX IF NOT EXISTS `PlaylistTrackIndex` ON `PlaylistTracks`(`PlaylistID`, `TrackIndex`)"));
-
-        if (!result) {
-            qWarning() << QStringLiteral("Failed to create index \"PlaylistTrackIndex\".");
-            setStatus(DbStatus::DatabaseError);
+            return false;
         }
     }
 

@@ -19,7 +19,7 @@ qt_standard_project_setup(REQUIRES 6.8)
 qt_policy(set QTP0004 NEW)
 
 option(USE_PCH "Use precompiled headers" OFF)
-option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_TESTS "Build tests" ON)
 
 add_subdirectory(src)
 
@@ -68,6 +68,7 @@ endif()
 
 if (BUILD_TESTS)
     find_package(GTest REQUIRED)
+    find_package(Qt6 6.8 REQUIRED COMPONENTS Test)
     add_subdirectory(tests)
 endif()
 

@@ -10,15 +10,14 @@
 
 #include <memory>
 
-class QAction;
 class DatabaseManager;
-class TracksWatchdog;
-class PlaylistModel;
-class TrackPlaylistProxyModel;
 class MediaPlayerWrapper;
 class ActiveTrackManager;
 class PlayerManager;
-class QAbstractItemModel;
+class TrackCollectionModel;
+class PlaylistCollectionModel;
+class PlaylistModel;
+class PlaylistProxyModel;
 class CorPlayerPrivate;
 
 class CorPlayer : public QObject {
@@ -27,48 +26,44 @@ class CorPlayer : public QObject {
     QML_SINGLETON
 
     // clang-format off
-    Q_PROPERTY(DatabaseManager *databaseManager READ databaseManager NOTIFY databaseManagerChanged)
-    Q_PROPERTY(TracksWatchdog *tracksWatchdog READ tracksWatchdog NOTIFY tracksWatchdogChanged)
-    Q_PROPERTY(PlaylistModel *playlistModel READ playlistModel NOTIFY playlistModelChanged)
+    Q_PROPERTY(TrackCollectionModel* trackCollectionModel READ trackCollectionModel NOTIFY trackCollectionModelChanged)
+    Q_PROPERTY(PlaylistCollectionModel* playlistCollectionModel READ playlistCollectionModel NOTIFY playlistCollectionModelChanged)
 
-    Q_PROPERTY(TrackPlaylistProxyModel *trackPlaylistProxyModel
-        READ trackPlaylistProxyModel NOTIFY trackPlaylistProxyModelChanged)
+    Q_PROPERTY(PlaylistModel* playlistModel READ playlistModel NOTIFY playlistModelChanged)
+    Q_PROPERTY(PlaylistProxyModel* playlistProxyModel READ playlistProxyModel NOTIFY playlistProxyModelChanged)
 
-    Q_PROPERTY(MediaPlayerWrapper *mediaPlayer READ mediaPlayer NOTIFY mediaPlayerChanged)
-    Q_PROPERTY(ActiveTrackManager *trackManager READ trackManager NOTIFY trackManagerChanged)
-    Q_PROPERTY(PlayerManager *playerManager READ playerManager NOTIFY playerManagerChanged)
+    Q_PROPERTY(MediaPlayerWrapper* mediaPlayer READ mediaPlayer NOTIFY mediaPlayerChanged)
+    Q_PROPERTY(ActiveTrackManager* trackManager READ trackManager NOTIFY trackManagerChanged)
+    Q_PROPERTY(PlayerManager* playerManager READ playerManager NOTIFY playerManagerChanged)
     // clang-format on
 
 public:
     explicit CorPlayer(QObject* parent = nullptr);
     ~CorPlayer() override;
 
-    [[nodiscard]] DatabaseManager* databaseManager() const;
-    [[nodiscard]] TracksWatchdog* tracksWatchdog() const;
+    [[nodiscard]] TrackCollectionModel* trackCollectionModel() const;
+    [[nodiscard]] PlaylistCollectionModel* playlistCollectionModel() const;
     [[nodiscard]] PlaylistModel* playlistModel() const;
-    [[nodiscard]] TrackPlaylistProxyModel* trackPlaylistProxyModel() const;
+    [[nodiscard]] PlaylistProxyModel* playlistProxyModel() const;
     [[nodiscard]] MediaPlayerWrapper* mediaPlayer() const;
-    [[nodiscard]] ActiveTrackManager *trackManager() const;
-    [[nodiscard]] PlayerManager *playerManager() const;
+    [[nodiscard]] ActiveTrackManager* trackManager() const;
+    [[nodiscard]] PlayerManager* playerManager() const;
 
 Q_SIGNALS:
-    void databaseManagerChanged();
-    void tracksWatchdogChanged();
+    void trackCollectionModelChanged();
+    void playlistCollectionModelChanged();
     void playlistModelChanged();
-    void trackPlaylistProxyModelChanged();
+    void playlistProxyModelChanged();
     void mediaPlayerChanged();
     void trackManagerChanged();
     void playerManagerChanged();
-
-    void enqueue(const Metadata::EntryFieldsList& newEntries, PlayerUtils::PlaylistEnqueueMode enqueueMode,
-                 PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
-
     void initializationDone();
 
 public Q_SLOTS:
     bool openFiles(const QList<QUrl>& files);
     bool openFiles(const QList<QUrl>& files, const QString& workingDirectory);
     void initialize();
+    void playTrack(quint64 trackId);
 
 private:
     void initializeModels();

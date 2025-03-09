@@ -1,17 +1,16 @@
-#include "filescanner.h"
+#include "library/filescanner.h"
 
-#include "../playerutils.hpp"
-#include "../taglib/tagreader.h"
-#include "../taglib/tracktags.h"
+#include "playerutils.hpp"
+#include "taglib/tagreader.h"
+#include "taglib/tracktags.h"
 
-#include <QLatin1StringView>
 #include <QMimeDatabase>
 
 #include <algorithm>
 
 class FileScannerPrivate {
 public:
-    QMimeDatabase m_mimeDB;
+    QMimeDatabase m_mimeDb;
     TagReader m_tagReader;
 };
 
@@ -20,31 +19,22 @@ FileScanner::FileScanner() : fs(std::make_unique<FileScannerPrivate>()) {}
 FileScanner::~FileScanner() = default;
 
 Metadata::TrackFields FileScanner::scanFile(const QUrl& file) const {
-    const QFileInfo fileInfo(file.toLocalFile());
-    return scanFile(file, fileInfo);
-}
+    Metadata::TrackFields newTrack{};
 
-Metadata::TrackFields FileScanner::scanFile(const QUrl& file, const QFileInfo& fileInfo) const {
-    Metadata::TrackFields newTrack;
+    if (!file.isLocalFile()) return newTrack;
 
-    if (!file.isLocalFile()) {
-        return newTrack;
-    }
+    const QString filePath = file.toLocalFile();
+    const QFileInfo fileInfo(filePath);
+
+    if (!fs->m_mimeDb.mimeTypeForFile(filePath).name().startsWith("audio/")) return newTrack;
 
     newTrack.insert(Metadata::Fields::DateModified, fileInfo.metadataChangeTime());
     newTrack.insert(Metadata::Fields::ResourceUrl, file);
     newTrack.insert(Metadata::Fields::ElementType, PlayerUtils::Track);
     newTrack.insert(Metadata::Fields::Duration, QTime::fromMSecsSinceStartOfDay(1));
 
-    const QString& localFile = file.toLocalFile();
-    const auto& mimeType = fs->m_mimeDB.mimeTypeForFile(localFile);
-
-    if (!mimeType.name().startsWith(QLatin1StringView("audio/"))) {
-        return newTrack;
-    }
-
-    TrackTags tags(localFile);
-    fs->m_tagReader.readMetadata(localFile, tags);
+    TrackTags tags(filePath);
+    fs->m_tagReader.readMetadata(filePath, tags);
 
     const auto roleMapping = tags.fieldMapping();
     auto rangeBegin = roleMapping.constKeyValueBegin();
@@ -83,10 +73,23 @@ Metadata::TrackFields FileScanner::scanFile(const QUrl& file, const QFileInfo& f
     }
 
     if (newTrack.get(Metadata::Fields::HasEmbeddedCover).toBool()) {
-        newTrack.insert(Metadata::Fields::CoverImage, QUrl("image://cover/" + localFile));
+        newTrack.insert(Metadata::Fields::CoverImage, QUrl("image://cover/" + filePath));
     }
 
     newTrack.insert(Metadata::Fields::Hash, newTrack.generateHash());
 
     return newTrack;
+}
+
+QList<Metadata::TrackFields> FileScanner::scanFiles(const QList<QUrl>& files) const {
+    QList<Metadata::TrackFields> result;
+    result.reserve(files.size());
+
+    for (const QUrl& file : files) {
+        if (auto track = scanFile(file); track.isValid()) {
+            result.append(std::move(track));
+        }
+    }
+
+    return result;
 }

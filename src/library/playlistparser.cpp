@@ -1,4 +1,4 @@
-#include <playlistparser.h>
+#include "library/playlistparser.h"
 
 #include <QMimeDatabase>
 

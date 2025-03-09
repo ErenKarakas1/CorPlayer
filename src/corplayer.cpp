@@ -1,12 +1,15 @@
 #include "corplayer.h"
 
-#include "playlist/playlistmodel.hpp"
-#include "playlist/trackplaylistproxymodel.h"
+#include "models/playlistmodel.hpp"
+#include "models/playlistproxymodel.hpp"
 
-#include "database/databasemanager.h"
-#include "trackswatchdog.h"
-#include "mediaplayerwrapper.h"
+#include "models/playlistcollectionmodel.hpp"
+#include "models/trackcollectionmodel.hpp"
+
 #include "activetrackmanager.h"
+#include "database/databasemanager.h"
+#include "library/library.hpp"
+#include "mediaplayerwrapper.h"
 #include "playermanager.h"
 
 #include <QDebug>
@@ -24,12 +27,14 @@
 class CorPlayerPrivate {
 public:
     QThread m_databaseThread;
-    QThread m_indexerThread;
-
     DatabaseManager* m_dbManager = nullptr;
-    std::unique_ptr<TracksWatchdog> m_tracksWatchdog;
+    std::unique_ptr<Library> m_library;
+
+    std::unique_ptr<TrackCollectionModel> m_trackCollectionModel;
+    std::unique_ptr<PlaylistCollectionModel> m_playlistCollectionModel;
     std::unique_ptr<PlaylistModel> m_playlistModel;
-    std::unique_ptr<TrackPlaylistProxyModel> m_trackPlaylistProxyModel;
+    std::unique_ptr<PlaylistProxyModel> m_playlistProxyModel;
+
     std::unique_ptr<MediaPlayerWrapper> m_mediaPlayer;
     std::unique_ptr<ActiveTrackManager> m_trackManager;
     std::unique_ptr<PlayerManager> m_playerManager;
@@ -37,13 +42,9 @@ public:
 
 CorPlayer::CorPlayer(QObject* parent) : QObject(parent), capp(std::make_unique<CorPlayerPrivate>()) {
     capp->m_databaseThread.start();
-    capp->m_indexerThread.start();
 }
 
 CorPlayer::~CorPlayer() {
-    capp->m_indexerThread.quit();
-    capp->m_indexerThread.wait();
-
     capp->m_databaseThread.quit();
     capp->m_databaseThread.wait();
 }
@@ -53,29 +54,28 @@ bool CorPlayer::openFiles(const QList<QUrl>& files) {
 }
 
 bool CorPlayer::openFiles(const QList<QUrl>& files, const QString& workingDirectory) {
-    auto tracks = Metadata::EntryFieldsList{};
     const QMimeDatabase mimeDB;
+    Metadata::EntryFieldsList entries;
 
     for (const auto& file : files) {
         const QMimeType mime = mimeDB.mimeTypeForUrl(file);
-        if (PlayerUtils::isPlaylist(mime)) {
-            capp->m_trackPlaylistProxyModel->loadPlaylist(file);
-        } else if (mime.name().startsWith(QStringLiteral("audio/"))) {
+        if (mime.name().startsWith(QStringLiteral("audio/"))) {
             auto entry = Metadata::TrackFields();
             entry.insert(Metadata::Fields::ElementType, PlayerUtils::FileName);
             entry.insert(Metadata::Fields::ResourceUrl, file);
-            tracks.emplace_back(Metadata::EntryFields{entry, {}, {}});
+            entries.emplace_back(Metadata::EntryFields{entry, {}, {}});
         }
     }
 
-    const auto targetFiles = sanitizePlaylist(tracks, workingDirectory);
-
-    if (!targetFiles.isEmpty()) {
-        Q_EMIT enqueue(targetFiles, PlayerUtils::PlaylistEnqueueMode::AppendPlaylist,
-                       PlayerUtils::PlaylistEnqueueTriggerPlay::TriggerPlay);
+    const auto targetEntries = sanitizePlaylist(entries, workingDirectory);
+    if (targetEntries.isEmpty()) {
+        return false;
     }
 
-    return tracks.count() == targetFiles.count();
+    capp->m_playlistProxyModel->enqueue(targetEntries, PlayerUtils::PlaylistEnqueueMode::AppendPlaylist,
+                                        PlayerUtils::PlaylistEnqueueTriggerPlay::TriggerPlay);
+
+    return true;
 }
 
 void CorPlayer::initialize() {
@@ -85,14 +85,18 @@ void CorPlayer::initialize() {
     Q_EMIT initializationDone();
 }
 
+void CorPlayer::playTrack(const quint64 trackId) {
+    const auto track = capp->m_library->trackDatabase().fetchTrackFromId(trackId);
+    if (!track.isValid()) return;
+
+    Metadata::EntryFieldsList entries;
+    entries.emplace_back(Metadata::EntryFields{.trackFields = track, .title = {}, .url = {}});
+
+    capp->m_playlistProxyModel->enqueue(entries, PlayerUtils::PlaylistEnqueueMode::ReplacePlaylist,
+                                        PlayerUtils::TriggerPlay);
+}
+
 void CorPlayer::initializeModels() {
-    capp->m_playlistModel = std::make_unique<PlaylistModel>();
-    Q_EMIT playlistModelChanged();
-
-    capp->m_trackPlaylistProxyModel = std::make_unique<TrackPlaylistProxyModel>();
-    capp->m_trackPlaylistProxyModel->setPlaylistModel(capp->m_playlistModel.get());
-    Q_EMIT trackPlaylistProxyModelChanged();
-
     capp->m_dbManager = &DatabaseManager::instance();
 
     const auto dbPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -104,26 +108,24 @@ void CorPlayer::initializeModels() {
 
     capp->m_dbManager->initialize(dbPath + QStringLiteral("/corplayer.db"));
 
-    Q_EMIT databaseManagerChanged();
+    capp->m_library = std::make_unique<Library>();
+    capp->m_library->initialize(capp->m_dbManager->dbConnectionPool());
 
-    if (capp->m_tracksWatchdog) return;
+    capp->m_trackCollectionModel = std::make_unique<TrackCollectionModel>(capp->m_library.get());
+    Q_EMIT trackCollectionModelChanged();
 
-    capp->m_tracksWatchdog = std::make_unique<TracksWatchdog>();
-    capp->m_tracksWatchdog->moveToThread(&capp->m_databaseThread);
-    QMetaObject::invokeMethod(capp->m_tracksWatchdog.get(), "initDatabase", Qt::QueuedConnection,
-                              Q_ARG(std::shared_ptr<DbConnectionPool>, capp->m_dbManager->dbConnectionPool()));
+    capp->m_playlistCollectionModel = std::make_unique<PlaylistCollectionModel>(capp->m_library.get());
+    Q_EMIT playlistCollectionModelChanged();
 
-    Q_EMIT tracksWatchdogChanged();
+    capp->m_playlistModel = std::make_unique<PlaylistModel>(capp->m_library.get());
+    Q_EMIT playlistModelChanged();
 
-    connect(capp->m_tracksWatchdog.get(), &TracksWatchdog::trackHasChanged, capp->m_playlistModel.get(),
-            &PlaylistModel::trackChanged);
-    connect(capp->m_playlistModel.get(), &PlaylistModel::addNewUrl, capp->m_tracksWatchdog.get(),
-            &TracksWatchdog::addNewUrl);
+    capp->m_playlistProxyModel = std::make_unique<PlaylistProxyModel>(capp->m_library.get());
+    capp->m_playlistProxyModel->setPlaylistModel(capp->m_playlistModel.get());
+    Q_EMIT playlistProxyModelChanged();
 
-    connect(this, &CorPlayer::enqueue, capp->m_trackPlaylistProxyModel.get(),
-            static_cast<void (TrackPlaylistProxyModel::*)(
-                const Metadata::EntryFieldsList&, PlayerUtils::PlaylistEnqueueMode,
-                PlayerUtils::PlaylistEnqueueTriggerPlay)>(&TrackPlaylistProxyModel::enqueue));
+    // connect(capp->m_playlistModel.get(), &PlaylistModel::addNewUrl, capp->m_library.get(),
+    // &Library::addTrackFromUrl);
 }
 
 void CorPlayer::initializePlayer() {
@@ -136,7 +138,7 @@ void CorPlayer::initializePlayer() {
     capp->m_playerManager = std::make_unique<PlayerManager>();
     Q_EMIT playerManagerChanged();
 
-    capp->m_trackManager->setPlaylistModel(capp->m_trackPlaylistProxyModel.get());
+    capp->m_trackManager->setPlaylistModel(capp->m_playlistProxyModel.get());
 
     // clang-format off
     connect(capp->m_trackManager.get(), &ActiveTrackManager::playTrack, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::play);
@@ -146,19 +148,19 @@ void CorPlayer::initializePlayer() {
     connect(capp->m_trackManager.get(), &ActiveTrackManager::saveUndoPositionInWrapper, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::saveUndoPosition);
     connect(capp->m_trackManager.get(), &ActiveTrackManager::restoreUndoPositionInWrapper, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::restoreUndoPosition);
 
-    connect(capp->m_trackManager.get(), &ActiveTrackManager::skipNextTrack, capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::skipNextTrack);
-    connect(capp->m_trackManager.get(), &ActiveTrackManager::sourceInError, capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::trackInError);
+    connect(capp->m_trackManager.get(), &ActiveTrackManager::skipNextTrack, capp->m_playlistProxyModel.get(), &PlaylistProxyModel::skipNextTrack);
+    connect(capp->m_trackManager.get(), &ActiveTrackManager::sourceInError, capp->m_playlistProxyModel.get(), &PlaylistProxyModel::trackInError);
 
     connect(capp->m_trackManager.get(), &ActiveTrackManager::trackSourceChanged, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::setSource);
     connect(capp->m_trackManager.get(), &ActiveTrackManager::updateData, capp->m_playlistModel.get(), &PlaylistModel::setData);
 
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::ensurePlay, capp->m_trackManager.get(), &ActiveTrackManager::ensurePlay);
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::requestPlay, capp->m_trackManager.get(), &ActiveTrackManager::requestPlay);
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::playlistFinished, capp->m_trackManager.get(), &ActiveTrackManager::playlistFinished);
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::currentTrackChanged, capp->m_trackManager.get(), &ActiveTrackManager::setCurrentTrack);
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::clearPlaylistPlayer, capp->m_trackManager.get(), &ActiveTrackManager::saveForUndoClearPlaylist);
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::undoClearPlaylistPlayer, capp->m_trackManager.get(), &ActiveTrackManager::restoreForUndoClearPlaylist);
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::seek, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::seek);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::ensurePlay, capp->m_trackManager.get(), &ActiveTrackManager::ensurePlay);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::requestPlay, capp->m_trackManager.get(), &ActiveTrackManager::requestPlay);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::playlistFinished, capp->m_trackManager.get(), &ActiveTrackManager::playlistFinished);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::currentTrackChanged, capp->m_trackManager.get(), &ActiveTrackManager::setCurrentTrack);
+    // connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::clearPlaylistPlayer, capp->m_trackManager.get(), &ActiveTrackManager::saveForUndoClearPlaylist);
+    // connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::undoClearPlaylistPlayer, capp->m_trackManager.get(), &ActiveTrackManager::restoreForUndoClearPlaylist);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::seek, capp->m_mediaPlayer.get(), &MediaPlayerWrapper::seek);
 
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::playbackStateChanged, capp->m_trackManager.get(), &ActiveTrackManager::setPlaybackState);
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::statusChanged, capp->m_trackManager.get(), &ActiveTrackManager::setMediaStatus);
@@ -167,16 +169,18 @@ void CorPlayer::initializePlayer() {
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::positionChanged, capp->m_trackManager.get(), &ActiveTrackManager::setPosition);
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::seekableChanged, capp->m_trackManager.get(), &ActiveTrackManager::setSeekable);
 
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::currentTrackChanged, capp->m_playerManager.get(), &PlayerManager::setCurrentTrack);
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::previousTrackChanged, capp->m_playerManager.get(), &PlayerManager::setPreviousTrack);
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::nextTrackChanged, capp->m_playerManager.get(), &PlayerManager::setNextTrack);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::currentTrackChanged, capp->m_playerManager.get(), &PlayerManager::setCurrentTrack);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::previousTrackChanged, capp->m_playerManager.get(), &PlayerManager::setPreviousTrack);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::nextTrackChanged, capp->m_playerManager.get(), &PlayerManager::setNextTrack);
 
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::playing, capp->m_playerManager.get(), &PlayerManager::playing);
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::paused, capp->m_playerManager.get(), &PlayerManager::pausedOrStopped);
     connect(capp->m_mediaPlayer.get(), &MediaPlayerWrapper::stopped, capp->m_playerManager.get(), &PlayerManager::pausedOrStopped);
 
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::currentTrackChanged, capp->m_trackManager->trackMetadata(), &TrackMetadata::setCurrentTrack);
-    connect(capp->m_trackPlaylistProxyModel.get(), &TrackPlaylistProxyModel::currentTrackDataChanged, capp->m_trackManager->trackMetadata(), &TrackMetadata::updateMetadata);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::currentTrackChanged, capp->m_trackManager->trackMetadata(), &TrackMetadata::setCurrentTrack);
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::currentTrackDataChanged, capp->m_trackManager->trackMetadata(), &TrackMetadata::updateMetadata);
+
+    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::playlistImported, capp->m_playlistCollectionModel.get(), &PlaylistCollectionModel::onPlaylistModified);
     // clang-format on
 }
 
@@ -213,31 +217,31 @@ Metadata::EntryFieldsList CorPlayer::sanitizePlaylist(const Metadata::EntryField
     return result;
 }
 
-DatabaseManager* CorPlayer::databaseManager() const {
-    return capp->m_dbManager;
+TrackCollectionModel* CorPlayer::trackCollectionModel() const {
+    return capp->m_trackCollectionModel.get();
 }
 
-TracksWatchdog* CorPlayer::tracksWatchdog() const {
-    return capp->m_tracksWatchdog.get();
+PlaylistCollectionModel* CorPlayer::playlistCollectionModel() const {
+    return capp->m_playlistCollectionModel.get();
 }
 
 PlaylistModel* CorPlayer::playlistModel() const {
     return capp->m_playlistModel.get();
 }
 
-TrackPlaylistProxyModel* CorPlayer::trackPlaylistProxyModel() const {
-    return capp->m_trackPlaylistProxyModel.get();
+PlaylistProxyModel* CorPlayer::playlistProxyModel() const {
+    return capp->m_playlistProxyModel.get();
 }
 
 MediaPlayerWrapper* CorPlayer::mediaPlayer() const {
     return capp->m_mediaPlayer.get();
 }
 
-ActiveTrackManager *CorPlayer::trackManager() const {
+ActiveTrackManager* CorPlayer::trackManager() const {
     return capp->m_trackManager.get();
 }
 
-PlayerManager *CorPlayer::playerManager() const {
+PlayerManager* CorPlayer::playerManager() const {
     return capp->m_playerManager.get();
 }
 

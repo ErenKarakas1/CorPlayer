@@ -1,7 +1,7 @@
-#include "trackdatabase.h"
+#include "database/trackdatabase.h"
 
-#include "sqlquery.h"
-#include "sqltransaction.h"
+#include "database/sqlquery.h"
+#include "database/sqltransaction.h"
 
 #include <QSqlError>
 
@@ -11,7 +11,7 @@ QString getTrackColumns() {
     static const QString columns = QStringLiteral(
         "`FileName`, `Title`, `ArtistName`, `AlbumTitle`, `AlbumArtistName`, `TrackNumber`, "
         "`DiscNumber`, `Duration`, `Genre`, `Performer`, `Composer`, `Lyricist`, `Year`, `Channels`, `Bitrate`, "
-        "`SampleRate`, `HasEmbeddedCover`, `TrackHash`");
+        "`SampleRate`, `HasEmbeddedCover`, `TrackHash`, `DateAdded`");
 
     return columns;
 }
@@ -46,8 +46,11 @@ Metadata::TrackFields insertTrackMetadata(const SqlQuery& query) {
     track.insert(BitRate, query.value(15));
     track.insert(SampleRate, query.value(16));
     track.insert(HasEmbeddedCover, query.value(17));
-    track.insert(CoverImage, QVariant{QLatin1String("image://cover/") + query.value(1).toUrl().toLocalFile()}); // TODO: handle this better when introducing caching
+    track.insert(CoverImage,
+                 QVariant{"image://cover/" +
+                          query.value(1).toUrl().toLocalFile()}); // TODO: handle this better when introducing caching
     track.insert(Hash, query.value(18));
+    track.insert(DateAdded, query.value(19));
 
     return track;
 }
@@ -77,21 +80,25 @@ std::map<QString, QVariant> getTrackBindings(const Metadata::TrackFields& track)
 } // namespace
 
 TrackDatabase::TrackFieldsList TrackDatabase::getTracks() const {
+    const auto db = this->db();
+
+    int count = 0;
+    {
+        const QString countStatement = QStringLiteral("SELECT COUNT(*) FROM `Tracks`;");
+        SqlQuery query{db, countStatement};
+        if (query.exec() && query.next()) {
+            count = query.value(0).toInt();
+            if (count == 0) return {};
+        }
+    }
+
     const QString statement = QStringLiteral("SELECT `TrackID`, %1 FROM Tracks;").arg(getTrackColumns());
-    SqlQuery query{db(), statement};
+    SqlQuery query{db, statement};
 
-    if (!query.exec()) {
-        return {};
-    }
-
-    const int rowCount = trackCount();
-
-    if (rowCount < 1) {
-        return {};
-    }
+    if (!query.exec()) return {};
 
     TrackFieldsList tracks;
-    tracks.reserve(rowCount);
+    tracks.reserve(count);
 
     while (query.next()) {
         tracks.append(insertTrackMetadata(query));
@@ -100,10 +107,9 @@ TrackDatabase::TrackFieldsList TrackDatabase::getTracks() const {
     return tracks;
 }
 
+// Returning true does not mean that all tracks were inserted successfully
 bool TrackDatabase::insertTracks(TrackFieldsList& tracks) const {
-    if (tracks.isEmpty()) {
-        return true;
-    }
+    if (tracks.isEmpty()) return true;
 
     SqlTransaction transaction{db()};
 
@@ -134,10 +140,10 @@ bool TrackDatabase::updateTracks(TrackFieldsList& tracks) const {
     return transaction.commit();
 }
 
-bool TrackDatabase::deleteTrack(const qulonglong trackId) const {
+bool TrackDatabase::deleteTrack(const quint64 trackId) const {
     const QString statement = QStringLiteral("DELETE FROM `Tracks` WHERE `TrackID` = :trackId;");
     SqlQuery query{db(), statement};
-    query.bindNumericValue(QStringLiteral(":trackId"), trackId);
+    query.bindValue(QStringLiteral(":trackId"), trackId);
 
     return query.exec();
 }
@@ -161,14 +167,46 @@ bool TrackDatabase::deleteTracks(TrackFieldsList& tracks) const {
     return transaction.commit() && deletedCount == tracks.size();
 }
 
-qulonglong TrackDatabase::fetchTrackIdFromFileName(const QUrl& fileName) const {
+QHash<QUrl, quint64> TrackDatabase::fetchTrackIdsFromFileNames(const QList<QUrl>& fileNames) const {
+    QHash<QUrl, quint64> result;
+
+    if (fileNames.isEmpty()) return result;
+
+    QStringList placeholders;
+    placeholders.reserve(fileNames.size());
+    for (int i = 0; i < fileNames.size(); ++i) {
+        placeholders.append("?");
+    }
+
+    const QString statement = QStringLiteral("SELECT `TrackID`, `FileName` FROM `Tracks` WHERE `FileName` IN (%1);")
+                                  .arg(placeholders.join(", "));
+    SqlQuery query{db(), statement};
+
+    for (const QUrl& fileName : fileNames) {
+        query.addBindValue(fileName.toString());
+    }
+
+    if (!query.exec()) {
+        qWarning() << "Failed to fetch track IDs from file names: " << query.lastError().text()
+                   << "\nLast query: " << query.lastQuery();
+        return result;
+    }
+
+    while (query.next()) {
+        const quint64 trackId = query.value(0).toULongLong();
+        const QString fileName = query.value(1).toString();
+        result.emplace(QUrl{fileName}, trackId);
+    }
+
+    return result;
+}
+
+quint64 TrackDatabase::fetchTrackIdFromFileName(const QUrl& fileName) const {
     const QString statement = QStringLiteral("SELECT `TrackID` FROM `Tracks` WHERE `FileName` = :fileName;");
     SqlQuery query{db(), statement};
     query.bindStringValue(QStringLiteral(":fileName"), fileName.toString());
 
-    if (!query.exec()) {
-        return {};
-    }
+    if (!query.exec()) return {};
 
     if (query.next()) {
         return query.value(0).toULongLong();
@@ -177,15 +215,13 @@ qulonglong TrackDatabase::fetchTrackIdFromFileName(const QUrl& fileName) const {
     return {};
 }
 
-Metadata::TrackFields TrackDatabase::fetchTrackFromId(const qulonglong trackId) const {
+Metadata::TrackFields TrackDatabase::fetchTrackFromId(const quint64 trackId) const {
     const QString statement =
         QStringLiteral("SELECT `TrackID`, %1 FROM `Tracks` WHERE `TrackID` = :trackId;").arg(getTrackColumns());
     SqlQuery query{db(), statement};
-    query.bindNumericValue(QStringLiteral(":trackId"), trackId);
+    query.bindValue(QStringLiteral(":trackId"), trackId);
 
-    if (!query.exec()) {
-        return {};
-    }
+    if (!query.exec()) return {};
 
     if (query.next()) {
         return insertTrackMetadata(query);
@@ -194,24 +230,11 @@ Metadata::TrackFields TrackDatabase::fetchTrackFromId(const qulonglong trackId) 
     return {};
 }
 
-int TrackDatabase::trackCount() const {
-    const QString statement = QStringLiteral("SELECT COUNT(*) FROM `Tracks`;");
-    SqlQuery query{db(), statement};
-
-    if (!query.exec()) {
-        return -1;
-    }
-
-    if (query.next()) {
-        return query.value(0).toInt();
-    }
-
-    return -1;
-}
-
 bool TrackDatabase::insertTrack(Metadata::TrackFields& track) const {
+    // FIXME: Workaround to ensure that the `DateAdded` column is populated with the current time
     const QString statement =
-        QStringLiteral("INSERT INTO `Tracks` (%1) VALUES (%2);").arg(getTrackColumns(), getTrackColumnBinds());
+        QStringLiteral("INSERT INTO `Tracks` (%1) VALUES (%2);")
+            .arg(getTrackColumns().remove(QStringLiteral(", `DateAdded`")), getTrackColumnBinds());
 
     SqlQuery query{db(), statement};
 
@@ -236,7 +259,7 @@ bool TrackDatabase::updateTrack(const Metadata::TrackFields& track) const {
         "`Duration` = :duration, `TrackNumber` = :track_number, `Year` = :year, `FileName` = :fileName "
         "WHERE `TrackID` = :trackId;");
     SqlQuery query{db(), statement};
-    query.bindNumericValue(QStringLiteral(":trackId"), track.get(Metadata::Fields::DatabaseId).toULongLong());
+    query.bindValue(QStringLiteral(":trackId"), track.get(Metadata::Fields::DatabaseId).toULongLong());
 
     const auto bindings = getTrackBindings(track);
     for (const auto& [key, value] : bindings) {
