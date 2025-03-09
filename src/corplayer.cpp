@@ -54,23 +54,21 @@ bool CorPlayer::openFiles(const QList<QUrl>& files) {
 }
 
 bool CorPlayer::openFiles(const QList<QUrl>& files, const QString& workingDirectory) {
-    const QMimeDatabase mimeDB;
-    Metadata::EntryFieldsList entries;
+    static const QMimeDatabase mimeDB;
+    QList<Metadata::TrackFields> entries;
 
-    for (const auto& file : files) {
+    for (const QUrl& file : files) {
         const QMimeType mime = mimeDB.mimeTypeForUrl(file);
         if (mime.name().startsWith(QStringLiteral("audio/"))) {
             auto entry = Metadata::TrackFields();
             entry.insert(Metadata::Fields::ElementType, PlayerUtils::FileName);
             entry.insert(Metadata::Fields::ResourceUrl, file);
-            entries.emplace_back(Metadata::EntryFields{entry, {}, {}});
+            entries.emplace_back(std::move(entry));
         }
     }
 
     const auto targetEntries = sanitizePlaylist(entries, workingDirectory);
-    if (targetEntries.isEmpty()) {
-        return false;
-    }
+    if (targetEntries.isEmpty()) return false;
 
     capp->m_playlistProxyModel->enqueue(targetEntries, PlayerUtils::PlaylistEnqueueMode::AppendPlaylist,
                                         PlayerUtils::PlaylistEnqueueTriggerPlay::TriggerPlay);
@@ -85,14 +83,11 @@ void CorPlayer::initialize() {
     Q_EMIT initializationDone();
 }
 
-void CorPlayer::playTrack(const quint64 trackId) {
+void CorPlayer::playTrack(const quint64 trackId) const {
     const auto track = capp->m_library->trackDatabase().fetchTrackFromId(trackId);
     if (!track.isValid()) return;
 
-    Metadata::EntryFieldsList entries;
-    entries.emplace_back(Metadata::EntryFields{.trackFields = track, .title = {}, .url = {}});
-
-    capp->m_playlistProxyModel->enqueue(entries, PlayerUtils::PlaylistEnqueueMode::ReplacePlaylist,
+    capp->m_playlistProxyModel->enqueue({track}, PlayerUtils::PlaylistEnqueueMode::ReplacePlaylist,
                                         PlayerUtils::TriggerPlay);
 }
 
@@ -155,7 +150,6 @@ void CorPlayer::initializePlayer() {
     connect(capp->m_trackManager.get(), &ActiveTrackManager::updateData, capp->m_playlistModel.get(), &PlaylistModel::setData);
 
     connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::ensurePlay, capp->m_trackManager.get(), &ActiveTrackManager::ensurePlay);
-    connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::requestPlay, capp->m_trackManager.get(), &ActiveTrackManager::requestPlay);
     connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::playlistFinished, capp->m_trackManager.get(), &ActiveTrackManager::playlistFinished);
     connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::currentTrackChanged, capp->m_trackManager.get(), &ActiveTrackManager::setCurrentTrack);
     // connect(capp->m_playlistProxyModel.get(), &PlaylistProxyModel::clearPlaylistPlayer, capp->m_trackManager.get(), &ActiveTrackManager::saveForUndoClearPlaylist);
@@ -184,34 +178,32 @@ void CorPlayer::initializePlayer() {
     // clang-format on
 }
 
-Metadata::EntryFieldsList CorPlayer::sanitizePlaylist(const Metadata::EntryFieldsList& entries,
-                                                      const QString& workingDirectory) const {
-    auto result = Metadata::EntryFieldsList{};
-    for (const auto& entry : entries) {
-        auto url = entry.trackFields.get(Metadata::Fields::ResourceUrl).toUrl();
-        auto entryUrl = entry.url.isValid() ? entry.url : url;
-        if (entryUrl.scheme().isEmpty() || entryUrl.isLocalFile()) {
-            auto newFile = QFileInfo(entryUrl.toLocalFile());
+QList<Metadata::TrackFields> CorPlayer::sanitizePlaylist(QList<Metadata::TrackFields>& entries,
+                                                         const QString& workingDirectory) {
+    QList<Metadata::TrackFields> result;
+    for (auto& entry : entries) {
+        const QUrl url = entry.get(Metadata::Fields::ResourceUrl).toUrl();
+        if (url.scheme().isEmpty() || url.isLocalFile()) {
+            auto newFile = QFileInfo(url.toLocalFile());
 
-            if (entryUrl.scheme().isEmpty()) {
-                newFile = QFileInfo(entryUrl.toString());
+            if (url.scheme().isEmpty()) {
+                newFile = QFileInfo(url.toString());
             }
 
             if (newFile.isRelative()) {
-                if (entryUrl.scheme().isEmpty()) {
-                    newFile.setFile(workingDirectory, entryUrl.toString());
+                if (url.scheme().isEmpty()) {
+                    newFile.setFile(workingDirectory, url.toString());
                 } else {
-                    newFile.setFile(workingDirectory, entryUrl.toLocalFile());
+                    newFile.setFile(workingDirectory, url.toLocalFile());
                 }
             }
 
             if (newFile.exists()) {
-                auto trackMetadata = entry.trackFields;
-                trackMetadata.insert(Metadata::Fields::ResourceUrl, QUrl::fromLocalFile(newFile.absoluteFilePath()));
-                result.push_back({trackMetadata, entry.title, {}});
+                entry.insert(Metadata::Fields::ResourceUrl, QUrl::fromLocalFile(newFile.absoluteFilePath()));
+                result.emplace_back(std::move(entry));
             }
         } else {
-            result.push_back(entry);
+            result.emplace_back(std::move(entry));
         }
     }
     return result;

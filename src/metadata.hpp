@@ -67,17 +67,6 @@ public:
         [[nodiscard]] QString generateHash() const;
     };
 
-    // TODO: is this necessary
-    struct EntryFields {
-        TrackFields trackFields;
-        QString title;
-        QUrl url;
-
-        [[nodiscard]] bool isValid() const;
-    };
-
-    using EntryFieldsList = QList<EntryFields>;
-
     enum PlaylistFields : std::uint16_t {
         IsPlaying = static_cast<int>(Fields::IsValid) + 1,
         AlbumSection,
@@ -94,8 +83,6 @@ public:
 };
 
 Q_DECLARE_METATYPE(Metadata::TrackFields)
-Q_DECLARE_METATYPE(Metadata::EntryFields)
-Q_DECLARE_METATYPE(Metadata::EntryFieldsList)
 Q_DECLARE_METATYPE(Metadata::PlaylistFields)
 Q_DECLARE_METATYPE(Metadata::PlaylistRecord)
 

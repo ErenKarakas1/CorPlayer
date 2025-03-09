@@ -2,10 +2,6 @@
 
 #include "playerutils.hpp"
 
-bool Metadata::EntryFields::isValid() const {
-    return !trackFields.isEmpty() || !title.isEmpty() || !url.isEmpty();
-}
-
 void Metadata::TrackFields::insert(const Fields field, const QVariant& value) {
     data.insert(field, value);
 }

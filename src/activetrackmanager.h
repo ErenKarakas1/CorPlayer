@@ -186,7 +186,6 @@ public Q_SLOTS:
 
     void ensurePause();
     void ensurePlay();
-    void requestPlay();
     void playPause();
     void stop();
 

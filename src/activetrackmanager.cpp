@@ -447,10 +447,6 @@ void ActiveTrackManager::ensurePlay() {
     }
 }
 
-void ActiveTrackManager::requestPlay() {
-    m_isPlaying = true;
-}
-
 void ActiveTrackManager::stop() {
     m_isPlaying = false;
     enqueue([this] {

@@ -4,37 +4,36 @@
 #include "metadata.hpp"
 #include "playerutils.hpp"
 
-#include <QAbstractProxyModel>
 #include <QMediaPlayer>
 #include <QQmlEngine>
+#include <QSortFilterProxyModel>
 
 class Library;
 class PlaylistModel;
 class PlaylistProxyModelPrivate;
 
-class PlaylistProxyModel : public QAbstractProxyModel {
+class PlaylistProxyModel : public QSortFilterProxyModel {
     Q_OBJECT
     QML_ELEMENT
     QML_UNCREATABLE("Only available through CorPlayer")
 
 public:
-    enum Repeat { None, CurrentTrack, Playlist };
-    Q_ENUM(Repeat);
+    enum RepeatMode { None, CurrentTrack, Playlist };
+    Q_ENUM(RepeatMode);
 
-    enum Shuffle { NoShuffle, Track };
-    Q_ENUM(Shuffle);
+    enum ShuffleMode { NoShuffle, Track };
+    Q_ENUM(ShuffleMode);
 
 private:
     Q_PROPERTY(QVariantMap persistentState READ persistentState WRITE setPersistentState NOTIFY persistentStateChanged)
     Q_PROPERTY(QPersistentModelIndex previousTrack READ previousTrack NOTIFY previousTrackChanged)
     Q_PROPERTY(QPersistentModelIndex currentTrack READ currentTrack NOTIFY currentTrackChanged)
     Q_PROPERTY(QPersistentModelIndex nextTrack READ nextTrack NOTIFY nextTrackChanged)
-    Q_PROPERTY(Repeat repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged)
-    Q_PROPERTY(Shuffle shuffleMode READ shuffleMode WRITE setShuffleMode NOTIFY shuffleModeChanged)
+    Q_PROPERTY(RepeatMode repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged)
+    Q_PROPERTY(ShuffleMode shuffleMode READ shuffleMode WRITE setShuffleMode NOTIFY shuffleModeChanged)
     Q_PROPERTY(int totalTracksDuration READ totalTracksDuration NOTIFY totalTracksDurationChanged)
     Q_PROPERTY(int remainingTracksDuration READ remainingTracksDuration NOTIFY remainingTracksDurationChanged)
     Q_PROPERTY(int remainingTracks READ remainingTracks NOTIFY remainingTracksChanged)
-    Q_PROPERTY(int currentTrackRow READ currentTrackRow NOTIFY currentTrackRowChanged)
     Q_PROPERTY(int tracksCount READ tracksCount NOTIFY tracksCountChanged)
 
 public:
@@ -58,23 +57,16 @@ public:
     [[nodiscard]] QPersistentModelIndex previousTrack() const;
     [[nodiscard]] QPersistentModelIndex currentTrack() const;
     [[nodiscard]] QPersistentModelIndex nextTrack() const;
-    [[nodiscard]] Repeat repeatMode() const;
-    [[nodiscard]] Shuffle shuffleMode() const;
+    [[nodiscard]] RepeatMode repeatMode() const;
+    [[nodiscard]] ShuffleMode shuffleMode() const;
     [[nodiscard]] int totalTracksDuration() const;
     [[nodiscard]] int remainingTracksDuration() const;
     [[nodiscard]] int remainingTracks() const;
-    [[nodiscard]] int currentTrackRow() const;
     [[nodiscard]] int tracksCount() const;
     [[nodiscard]] QVariantMap persistentState() const;
 
 public Q_SLOTS:
-    void enqueue(const QUrl& entryUrl, PlayerUtils::PlaylistEnqueueMode enqueueMode,
-                 PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
-
-    void enqueue(const Metadata::TrackFields& newEntry, const QString& newEntryTitle,
-                 PlayerUtils::PlaylistEnqueueMode enqueueMode, PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
-
-    void enqueue(const Metadata::EntryFieldsList& newEntries, PlayerUtils::PlaylistEnqueueMode enqueueMode,
+    void enqueue(const QList<Metadata::TrackFields>& newEntries, PlayerUtils::PlaylistEnqueueMode enqueueMode,
                  PlayerUtils::PlaylistEnqueueTriggerPlay triggerPlay);
 
     void loadPlaylistFromDatabase(quint64 playlistId);
@@ -85,32 +77,26 @@ public Q_SLOTS:
     void switchTo(int row);
     void removeSelection(const QList<int>& selection);
     void moveRow(int from, int to);
-    void setRepeatMode(PlaylistProxyModel::Repeat newMode);
-    void setShuffleMode(PlaylistProxyModel::Shuffle value);
+    void setRepeatMode(PlaylistProxyModel::RepeatMode repeatMode);
+    void setShuffleMode(PlaylistProxyModel::ShuffleMode shuffleMode);
     void setPersistentState(const QVariantMap& persistentState);
     void trackInError(const QUrl& sourceInError, QMediaPlayer::Error error);
 
 Q_SIGNALS:
+    void persistentStateChanged();
     void previousTrackChanged(const QPersistentModelIndex& previousTrack);
     void currentTrackChanged(const QPersistentModelIndex& currentTrack);
     void nextTrackChanged(const QPersistentModelIndex& nextTrack);
-    void previousTrackDataChanged();
-    void currentTrackDataChanged();
-    void nextTrackDataChanged();
     void repeatModeChanged();
     void shuffleModeChanged();
     void totalTracksDurationChanged();
     void remainingTracksDurationChanged();
     void remainingTracksChanged();
-    void ensurePlay();
-    void requestPlay();
-    void currentTrackRowChanged();
     void tracksCountChanged();
+    void currentTrackDataChanged();
+    void ensurePlay();
     void playlistFinished();
-    void playlistLoaded();
     void playlistImported(quint64 playlistId);
-    void playlistLoadFailed();
-    void persistentStateChanged();
     void seek(qint64 position);
 
 private Q_SLOTS:
@@ -130,13 +116,11 @@ private Q_SLOTS:
 private:
     void setSourceModel(QAbstractItemModel* sourceModel) override;
     void determineTracks();
-    void notifyCurrentTrackRowChanged();
     void notifyCurrentTrackChanged();
     void determineAndNotifyPreviousAndNextTracks();
     [[nodiscard]] QVariantList getRandomMappingForRestore() const;
-    void restoreShuffleMode(Shuffle mode, const QVariantList& mapping);
+    void restoreShuffleMode(ShuffleMode mode, const QVariantList& mapping);
 
-    int m_seekToBeginningDelay = 2000;
     std::unique_ptr<PlaylistProxyModelPrivate> pp;
 };
 

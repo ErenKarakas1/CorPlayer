@@ -55,7 +55,7 @@ public:
 
     void clearPlaylist();
     void enqueueRestoredEntries(const QVariantList& newEntries);
-    void enqueueMultipleEntries(const Metadata::EntryFieldsList& newEntries, int insertAt = -1);
+    void enqueueMultipleEntries(const QList<Metadata::TrackFields>& newEntries, int insertAt = -1);
     void loadTracksFromIds(const QList<quint64>& trackIds);
     [[nodiscard]] QVariantList getEntriesForRestore() const;
 

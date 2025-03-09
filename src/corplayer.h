@@ -63,14 +63,14 @@ public Q_SLOTS:
     bool openFiles(const QList<QUrl>& files);
     bool openFiles(const QList<QUrl>& files, const QString& workingDirectory);
     void initialize();
-    void playTrack(quint64 trackId);
+    void playTrack(quint64 trackId) const;
 
 private:
     void initializeModels();
     void initializePlayer();
 
-    [[nodiscard]] Metadata::EntryFieldsList sanitizePlaylist(const Metadata::EntryFieldsList& entries,
-                                                             const QString& workingDirectory) const;
+    [[nodiscard]] static QList<Metadata::TrackFields> sanitizePlaylist(QList<Metadata::TrackFields>& entries,
+                                                                       const QString& workingDirectory);
 
     std::unique_ptr<CorPlayerPrivate> capp;
 };

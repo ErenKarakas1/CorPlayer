@@ -170,7 +170,7 @@ void PlaylistModel::enqueueRestoredEntries(const QVariantList& newEntries) {
     endInsertRows();
 }
 
-void PlaylistModel::enqueueMultipleEntries(const Metadata::EntryFieldsList& newEntries, const int insertAt) {
+void PlaylistModel::enqueueMultipleEntries(const QList<Metadata::TrackFields>& newEntries, const int insertAt) {
     if (newEntries.isEmpty()) return;
 
     int validEntries = 0;
@@ -189,25 +189,22 @@ void PlaylistModel::enqueueMultipleEntries(const Metadata::EntryFieldsList& newE
     for (const auto& entry : newEntries) {
         if (!entry.isValid()) continue;
 
-        const auto resourceUrl =
-            entry.url.isValid() ? entry.url : entry.trackFields.get(Metadata::Fields::ResourceUrl).toUrl();
+        const QUrl resourceUrl = entry.get(Metadata::Fields::ResourceUrl).toUrl();
 
-        if (!entry.trackFields.contains(Metadata::Fields::DatabaseId) && resourceUrl.isValid()) {
+        if (!entry.contains(Metadata::Fields::DatabaseId) && resourceUrl.isValid()) {
             auto newEntry = PlaylistEntry(resourceUrl);
             newEntry.m_entryType = PlayerUtils::FileName;
             p->m_entries.insert(i, std::move(newEntry));
             p->m_trackFields.insert(i, Metadata::TrackFields{});
         } else {
-            const auto& data = entry.trackFields;
-            p->m_entries.insert(i, PlaylistEntry{data});
-            p->m_trackFields.insert(i, data);
+            p->m_entries.insert(i, PlaylistEntry{entry});
+            p->m_trackFields.insert(i, entry);
         }
 
         if (resourceUrl.isValid()) {
             auto type = PlayerUtils::FileName;
-            if (entry.trackFields.contains(Metadata::Fields::ElementType)) {
-                type = static_cast<PlayerUtils::PlaylistEntryType>(
-                    entry.trackFields.get(Metadata::Fields::ElementType).toInt());
+            if (entry.contains(Metadata::Fields::ElementType)) {
+                type = static_cast<PlayerUtils::PlaylistEntryType>(entry.get(Metadata::Fields::ElementType).toInt());
             }
             Q_EMIT addNewUrl(resourceUrl, type);
         }

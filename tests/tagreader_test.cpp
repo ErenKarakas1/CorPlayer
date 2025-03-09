@@ -9,9 +9,9 @@ class TagReaderTest : public ::testing::Test {
 protected:
     TagReader m_tagReader;
 
-    void debugTags(const TrackTags &tags) {
-        for (auto it = tags.roleMapping().begin(); it != tags.roleMapping().end(); ++it) {
-            qDebug() << "Key: " << it.key() << ", Value: " << it.value();
+    static void debugTags(const TrackTags& tags) {
+        for (auto it = tags.fieldMapping().begin(); it != tags.fieldMapping().end(); ++it) {
+            qDebug() << "Key: " << it.key() << ", Value: " << it.value().toString();
         }
     }
 };
@@ -26,21 +26,21 @@ TEST_F(TagReaderTest, ReadMetadataOpus) {
     TrackTags tags(tempFile.fileName());
     m_tagReader.readMetadata(tempFile.fileName(), tags);
 
-    ASSERT_EQ(tags.value(MetadataFields::TitleRole).toString(), QStringLiteral("Test Title"));
-    ASSERT_EQ(tags.value(MetadataFields::ArtistRole).toString(), QStringLiteral("Test Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumRole).toString(), QStringLiteral("Test Album"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumArtistRole).toString(), QStringLiteral("Test Album Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::GenreRole).toString(), QStringLiteral("Rock"));
-    ASSERT_EQ(tags.value(MetadataFields::YearRole).toInt(), 2024);
-    ASSERT_EQ(tags.value(MetadataFields::TrackNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DiscNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DurationRole).toInt(), 30);
-    ASSERT_EQ(tags.value(MetadataFields::SampleRateRole).toInt(), 48000);
-    ASSERT_EQ(tags.value(MetadataFields::BitRateRole).toInt(), 2000);
-    ASSERT_EQ(tags.value(MetadataFields::PerformerRole).toString(), QStringLiteral("Test Performer"));
-    ASSERT_EQ(tags.value(MetadataFields::ComposerRole).toString(), QStringLiteral("Test Composer"));
-    ASSERT_EQ(tags.value(MetadataFields::CommentRole).toString(), QStringLiteral("This is a test file"));
-    ASSERT_EQ(tags.value(MetadataFields::FileTypeRole).toString(), QStringLiteral("Opus"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Title).toString(), QStringLiteral("Test Title"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Artist).toString(), QStringLiteral("Test Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Album).toString(), QStringLiteral("Test Album"));
+    ASSERT_EQ(tags.value(Metadata::Fields::AlbumArtist).toString(), QStringLiteral("Test Album Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Genre).toString(), QStringLiteral("Rock"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Year).toInt(), 2024);
+    ASSERT_EQ(tags.value(Metadata::Fields::TrackNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::DiscNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::Duration).toInt(), 30);
+    ASSERT_EQ(tags.value(Metadata::Fields::SampleRate).toInt(), 48000);
+    ASSERT_EQ(tags.value(Metadata::Fields::BitRate).toInt(), 2000);
+    ASSERT_EQ(tags.value(Metadata::Fields::Performer).toString(), QStringLiteral("Test Performer"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Composer).toString(), QStringLiteral("Test Composer"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Comment).toString(), QStringLiteral("This is a test file"));
+    ASSERT_EQ(tags.value(Metadata::Fields::FileType).toString(), QStringLiteral("Opus"));
 }
 
 TEST_F(TagReaderTest, ReadMetadataFlac) {
@@ -53,21 +53,21 @@ TEST_F(TagReaderTest, ReadMetadataFlac) {
     TrackTags tags(tempFile.fileName());
     m_tagReader.readMetadata(tempFile.fileName(), tags);
 
-    ASSERT_EQ(tags.value(MetadataFields::TitleRole).toString(), QStringLiteral("Test Title"));
-    ASSERT_EQ(tags.value(MetadataFields::ArtistRole).toString(), QStringLiteral("Test Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumRole).toString(), QStringLiteral("Test Album"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumArtistRole).toString(), QStringLiteral("Test Album Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::GenreRole).toString(), QStringLiteral("Rock"));
-    ASSERT_EQ(tags.value(MetadataFields::YearRole).toInt(), 2024);
-    ASSERT_EQ(tags.value(MetadataFields::TrackNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DiscNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DurationRole).toInt(), 30);
-    ASSERT_EQ(tags.value(MetadataFields::SampleRateRole).toInt(), 44100);
-    ASSERT_EQ(tags.value(MetadataFields::BitRateRole).toInt(), 1000);
-    ASSERT_EQ(tags.value(MetadataFields::PerformerRole).toString(), QStringLiteral("Test Performer"));
-    ASSERT_EQ(tags.value(MetadataFields::ComposerRole).toString(), QStringLiteral("Test Composer"));
-    ASSERT_EQ(tags.value(MetadataFields::CommentRole).toString(), QStringLiteral("This is a test file"));
-    ASSERT_EQ(tags.value(MetadataFields::FileTypeRole).toString(), QStringLiteral("FLAC"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Title).toString(), QStringLiteral("Test Title"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Artist).toString(), QStringLiteral("Test Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Album).toString(), QStringLiteral("Test Album"));
+    ASSERT_EQ(tags.value(Metadata::Fields::AlbumArtist).toString(), QStringLiteral("Test Album Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Genre).toString(), QStringLiteral("Rock"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Year).toInt(), 2024);
+    ASSERT_EQ(tags.value(Metadata::Fields::TrackNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::DiscNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::Duration).toInt(), 30);
+    ASSERT_EQ(tags.value(Metadata::Fields::SampleRate).toInt(), 44100);
+    ASSERT_EQ(tags.value(Metadata::Fields::BitRate).toInt(), 1000);
+    ASSERT_EQ(tags.value(Metadata::Fields::Performer).toString(), QStringLiteral("Test Performer"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Composer).toString(), QStringLiteral("Test Composer"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Comment).toString(), QStringLiteral("This is a test file"));
+    ASSERT_EQ(tags.value(Metadata::Fields::FileType).toString(), QStringLiteral("FLAC"));
 }
 
 TEST_F(TagReaderTest, ReadMetadataMp3) {
@@ -80,22 +80,22 @@ TEST_F(TagReaderTest, ReadMetadataMp3) {
     TrackTags tags(tempFile.fileName());
     m_tagReader.readMetadata(tempFile.fileName(), tags);
 
-    ASSERT_EQ(tags.value(MetadataFields::TitleRole).toString(), QStringLiteral("Test Title"));
-    ASSERT_EQ(tags.value(MetadataFields::ArtistRole).toString(), QStringLiteral("Test Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumRole).toString(), QStringLiteral("Test Album"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumArtistRole).toString(), QStringLiteral("Test Album Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::GenreRole).toString(), QStringLiteral("Rock"));
-    ASSERT_EQ(tags.value(MetadataFields::YearRole).toInt(), 2024);
-    ASSERT_EQ(tags.value(MetadataFields::TrackNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DiscNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DurationRole).toInt(), 30);
-    ASSERT_EQ(tags.value(MetadataFields::SampleRateRole).toInt(), 44100);
-    ASSERT_EQ(tags.value(MetadataFields::BitRateRole).toInt(), 128000);
-    ASSERT_EQ(tags.value(MetadataFields::PerformerRole).toString(), QStringLiteral("Test Performer"));
-    ASSERT_EQ(tags.value(MetadataFields::ComposerRole).toString(), QStringLiteral("Test Composer"));
-    ASSERT_EQ(tags.value(MetadataFields::CommentRole).toString(), QStringLiteral("This is a test file"));
-    ASSERT_EQ(tags.value(MetadataFields::HasEmbeddedCover).toBool(), false);
-    ASSERT_EQ(tags.value(MetadataFields::FileTypeRole).toString(), QStringLiteral("MPEG"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Title).toString(), QStringLiteral("Test Title"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Artist).toString(), QStringLiteral("Test Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Album).toString(), QStringLiteral("Test Album"));
+    ASSERT_EQ(tags.value(Metadata::Fields::AlbumArtist).toString(), QStringLiteral("Test Album Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Genre).toString(), QStringLiteral("Rock"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Year).toInt(), 2024);
+    ASSERT_EQ(tags.value(Metadata::Fields::TrackNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::DiscNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::Duration).toInt(), 30);
+    ASSERT_EQ(tags.value(Metadata::Fields::SampleRate).toInt(), 44100);
+    ASSERT_EQ(tags.value(Metadata::Fields::BitRate).toInt(), 128000);
+    ASSERT_EQ(tags.value(Metadata::Fields::Performer).toString(), QStringLiteral("Test Performer"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Composer).toString(), QStringLiteral("Test Composer"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Comment).toString(), QStringLiteral("This is a test file"));
+    ASSERT_EQ(tags.value(Metadata::Fields::HasEmbeddedCover).toBool(), true);
+    ASSERT_EQ(tags.value(Metadata::Fields::FileType).toString(), QStringLiteral("MPEG"));
 }
 
 TEST_F(TagReaderTest, ReadMetadataM4a) {
@@ -108,19 +108,19 @@ TEST_F(TagReaderTest, ReadMetadataM4a) {
     TrackTags tags(tempFile.fileName());
     m_tagReader.readMetadata(tempFile.fileName(), tags);
 
-    ASSERT_EQ(tags.value(MetadataFields::TitleRole).toString(), QStringLiteral("Test Title"));
-    ASSERT_EQ(tags.value(MetadataFields::ArtistRole).toString(), QStringLiteral("Test Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumRole).toString(), QStringLiteral("Test Album"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumArtistRole).toString(), QStringLiteral("Test Album Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::GenreRole).toString(), QStringLiteral("Rock"));
-    ASSERT_EQ(tags.value(MetadataFields::YearRole).toInt(), 2024);
-    ASSERT_EQ(tags.value(MetadataFields::TrackNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DiscNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DurationRole).toInt(), 30);
-    ASSERT_EQ(tags.value(MetadataFields::SampleRateRole).toInt(), 44100);
-    ASSERT_EQ(tags.value(MetadataFields::ComposerRole).toString(), QStringLiteral("Test Composer"));
-    ASSERT_EQ(tags.value(MetadataFields::CommentRole).toString(), QStringLiteral("This is a test file"));
-    ASSERT_EQ(tags.value(MetadataFields::FileTypeRole).toString(), QStringLiteral("MPEG-4"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Title).toString(), QStringLiteral("Test Title"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Artist).toString(), QStringLiteral("Test Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Album).toString(), QStringLiteral("Test Album"));
+    ASSERT_EQ(tags.value(Metadata::Fields::AlbumArtist).toString(), QStringLiteral("Test Album Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Genre).toString(), QStringLiteral("Rock"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Year).toInt(), 2024);
+    ASSERT_EQ(tags.value(Metadata::Fields::TrackNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::DiscNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::Duration).toInt(), 30);
+    ASSERT_EQ(tags.value(Metadata::Fields::SampleRate).toInt(), 44100);
+    ASSERT_EQ(tags.value(Metadata::Fields::Composer).toString(), QStringLiteral("Test Composer"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Comment).toString(), QStringLiteral("This is a test file"));
+    ASSERT_EQ(tags.value(Metadata::Fields::FileType).toString(), QStringLiteral("MPEG-4"));
 }
 
 TEST_F(TagReaderTest, ReadMetadataOgg) {
@@ -133,21 +133,21 @@ TEST_F(TagReaderTest, ReadMetadataOgg) {
     TrackTags tags(tempFile.fileName());
     m_tagReader.readMetadata(tempFile.fileName(), tags);
 
-    ASSERT_EQ(tags.value(MetadataFields::TitleRole).toString(), QStringLiteral("Test Title"));
-    ASSERT_EQ(tags.value(MetadataFields::ArtistRole).toString(), QStringLiteral("Test Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumRole).toString(), QStringLiteral("Test Album"));
-    ASSERT_EQ(tags.value(MetadataFields::AlbumArtistRole).toString(), QStringLiteral("Test Album Artist"));
-    ASSERT_EQ(tags.value(MetadataFields::GenreRole).toString(), QStringLiteral("Rock"));
-    ASSERT_EQ(tags.value(MetadataFields::YearRole).toInt(), 2024);
-    ASSERT_EQ(tags.value(MetadataFields::TrackNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DiscNumberRole).toInt(), 1);
-    ASSERT_EQ(tags.value(MetadataFields::DurationRole).toInt(), 30);
-    ASSERT_EQ(tags.value(MetadataFields::SampleRateRole).toInt(), 44100);
-    ASSERT_EQ(tags.value(MetadataFields::BitRateRole).toInt(), 1000);
-    ASSERT_EQ(tags.value(MetadataFields::PerformerRole).toString(), QStringLiteral("Test Performer"));
-    ASSERT_EQ(tags.value(MetadataFields::ComposerRole).toString(), QStringLiteral("Test Composer"));
-    ASSERT_EQ(tags.value(MetadataFields::CommentRole).toString(), QStringLiteral("This is a test file"));
-    ASSERT_EQ(tags.value(MetadataFields::FileTypeRole).toString(), QStringLiteral("Vorbis"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Title).toString(), QStringLiteral("Test Title"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Artist).toString(), QStringLiteral("Test Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Album).toString(), QStringLiteral("Test Album"));
+    ASSERT_EQ(tags.value(Metadata::Fields::AlbumArtist).toString(), QStringLiteral("Test Album Artist"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Genre).toString(), QStringLiteral("Rock"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Year).toInt(), 2024);
+    ASSERT_EQ(tags.value(Metadata::Fields::TrackNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::DiscNumber).toInt(), 1);
+    ASSERT_EQ(tags.value(Metadata::Fields::Duration).toInt(), 30);
+    ASSERT_EQ(tags.value(Metadata::Fields::SampleRate).toInt(), 44100);
+    ASSERT_EQ(tags.value(Metadata::Fields::BitRate).toInt(), 1000);
+    ASSERT_EQ(tags.value(Metadata::Fields::Performer).toString(), QStringLiteral("Test Performer"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Composer).toString(), QStringLiteral("Test Composer"));
+    ASSERT_EQ(tags.value(Metadata::Fields::Comment).toString(), QStringLiteral("This is a test file"));
+    ASSERT_EQ(tags.value(Metadata::Fields::FileType).toString(), QStringLiteral("Vorbis"));
 }
 
 TEST_F(TagReaderTest, ReadMetadataBenchmark) {
