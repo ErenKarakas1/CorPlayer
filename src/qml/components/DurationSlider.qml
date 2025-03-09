@@ -1,4 +1,3 @@
-import "../.."
 import CorPlayer
 
 import QtQuick
@@ -37,7 +36,7 @@ GridLayout {
             slider.value = 0;
         }
 
-        target: CorPlayer.trackPlaylistProxyModel
+        target: CorPlayer.playlistProxyModel
     }
 
     TextMetrics {

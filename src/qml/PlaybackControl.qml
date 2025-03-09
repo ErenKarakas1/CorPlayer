@@ -9,8 +9,8 @@ FocusScope {
 
     readonly property int duration: CorPlayer.trackManager.duration
     readonly property bool isPlaying: CorPlayer.playerManager.isPlaying
-    readonly property int repeatMode: CorPlayer.trackPlaylistProxyModel.repeatMode
-    readonly property int shuffleMode: CorPlayer.trackPlaylistProxyModel.shuffleMode
+    readonly property int repeatMode: CorPlayer.playlistProxyModel.repeatMode
+    readonly property int shuffleMode: CorPlayer.playlistProxyModel.shuffleMode
     readonly property bool playEnabled: CorPlayer.playerManager.canPlay
     readonly property int position: CorPlayer.trackManager.position
     readonly property bool seekable: CorPlayer.mediaPlayer.isSeekable
@@ -30,13 +30,13 @@ FocusScope {
 
     onPause: CorPlayer.trackManager.playPause()
     onPlay: CorPlayer.trackManager.playPause()
-    onPlayNext: CorPlayer.trackPlaylistProxyModel.skipNextTrack(PlayerUtils.Manual)
-    onPlayPrevious: CorPlayer.trackPlaylistProxyModel.skipPreviousTrack(CorPlayer.mediaPlayer.position)
+    onPlayNext: CorPlayer.playlistProxyModel.skipNextTrack(PlayerUtils.Manual)
+    onPlayPrevious: CorPlayer.playlistProxyModel.skipPreviousTrack(CorPlayer.mediaPlayer.position)
     onSeek: (position) => {
         return CorPlayer.trackManager.seek(position);
     }
-    onChangeRepeatMode: CorPlayer.trackPlaylistProxyModel.setRepeatMode((repeatMode + 1) % 3)
-    onChangeShuffleMode: CorPlayer.trackPlaylistProxyModel.setShuffleMode((shuffleMode + 1) % 2)
+    onChangeRepeatMode: CorPlayer.playlistProxyModel.setRepeatMode((repeatMode + 1) % 3)
+    onChangeShuffleMode: CorPlayer.playlistProxyModel.setShuffleMode((shuffleMode + 1) % 2)
 
     Column {
         id: playbackControlLayout

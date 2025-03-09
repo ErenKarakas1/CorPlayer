@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import CorPlayer
 
 import Qt.labs.platform
@@ -6,6 +8,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+
+import "dialogs"
 
 ApplicationWindow {
     id: mainWindow
@@ -117,8 +121,27 @@ ApplicationWindow {
 
         folder: StandardPaths.writableLocation(StandardPaths.MusicLocation)
         onAccepted: {
-            CorPlayer.trackPlaylistProxyModel.loadPlaylist(fileDialog.file);
+            CorPlayer.playlistProxyModel.loadPlaylistFromFile(fileDialog.file);
         }
+    }
+
+    NewPlaylistDialog {
+        id: newPlaylistDialog
+        parent: mainWindow.contentItem
+        anchors.centerIn: parent
+    }
+
+    RenamePlaylistDialog {
+        id: renamePlaylistDialog
+        parent: mainWindow.contentItem
+        anchors.centerIn: parent
+    }
+
+    DeletePlaylistDialog {
+        id: deletePlaylistDialog
+        parent: mainWindow.contentItem
+        anchors.centerIn: parent
+        playlists: playlists
     }
 
     Rectangle {
@@ -128,7 +151,12 @@ ApplicationWindow {
         color: "black"
 
         RowLayout {
-            anchors.fill: parent
+            anchors {
+                top: parent.top
+                left: parent.left
+                right: parent.right
+                bottom: playerControls.top
+            }
             spacing: 0
 
             // Left sidebar
@@ -149,14 +177,12 @@ ApplicationWindow {
                         IconButton {
                             icon.name: "qrc:/icons/fa_plus"
                             tooltipText: "Create New Playlist"
-                            onClicked: {
-                                console.log("New Playlist");
-                            }
+                            onClicked: newPlaylistDialog.open();
                         }
 
                         IconButton {
                             icon.name: "qrc:/icons/fa_folder"
-                            tooltipText: "Load Playlist"
+                            tooltipText: "Import Playlist"
                             onClicked: fileDialog.loadPlaylist();
                         }
                     }
@@ -169,18 +195,117 @@ ApplicationWindow {
                         color: "gray"
                     }
 
+                    // All tracks section
+                    ItemDelegate {
+                        Layout.fillWidth: true
+                        height: 40
+
+                        contentItem: RowLayout {
+                            spacing: 12
+
+                            // Image {
+                            //     source: "qrc:/icons/fa_music"
+                            //     Layout.preferredWidth: 20
+                            //     Layout.preferredHeight: 20
+                            // }
+
+                            Text {
+                                text: "All Tracks"
+                                color: sidebarStack.currentIndex === 0 ? "white" : "#b3b3b3"
+                                font.pixelSize: 14
+                            }
+                        }
+
+                        onClicked: sidebarStack.currentIndex = 0
+                    }
+
+                    // Divider
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        Layout.margins: 8
+                        color: "gray"
+                    }
+
                     ListView {
+                        id: playlists
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        // TODO: add model
-                        delegate: PlaylistTrackItem {
+                        model: CorPlayer.playlistCollectionModel
+
+                        delegate: ItemDelegate {
+                            id: playlistDelegate
                             width: parent.width
-                            height: 40
-                            name: "Track Name"
-                            // selected: false
-                            onClicked: {
-                                console.log("Switch to playlist")
+                            height: 48
+
+                            required property int index
+                            required property int playlistId
+                            required property string name
+                            required property int trackCount
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: 8
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: playlistDelegate.name
+                                    color: playlistDelegate.ListView.isCurrentItem ? "white" : "#b3b3b3"
+                                    font.pixelSize: 14
+                                    elide: Text.ElideRight
+                                }
+
+                                // Edit button here
+
+                                // Trash button here
                             }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+                                onClicked: (mouse) => {
+                                    if (mouse.button === Qt.LeftButton) {
+                                        playlists.currentIndex = playlistDelegate.index
+                                        sidebarStack.currentIndex = 1
+                                        CorPlayer.playlistProxyModel.loadPlaylistFromDatabase(playlistDelegate.playlistId)
+                                    }
+
+                                    if (mouse.button === Qt.RightButton) {
+                                        playlistContextMenu.popup()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Menu {
+                    id: playlistContextMenu
+
+                    MenuItem {
+                        text: "Rename"
+                        onTriggered: {
+                            renamePlaylistDialog.playlistIndex = playlists.currentIndex
+                            renamePlaylistDialog.playlistName = playlists.currentItem.name
+                            renamePlaylistDialog.open()
+                        }
+                    }
+
+                    MenuItem {
+                        text: "Delete"
+                        onTriggered: {
+                            deletePlaylistDialog.open()
+                        }
+                    }
+
+                    MenuSeparator {
+                    }
+
+                    MenuItem {
+                        text: "Export"
+                        onTriggered: {
+                            fileDialog.savePlaylist()
                         }
                     }
                 }
@@ -192,139 +317,147 @@ ApplicationWindow {
                 Layout.fillHeight: true
                 color: "#121212"
 
-                ColumnLayout {
+                StackLayout {
+                    id: sidebarStack
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 16
+                    currentIndex: 0
 
-                    // Current playlist header
-                    RowLayout {
-                        Layout.fillWidth: true
+                    // All Tracks view
+                    TrackBrowser {
+                        id: libraryView
+                        model: CorPlayer.trackCollectionModel
+                        showHeader: true
+
+                        headerTitle: "Library"
+                        headerText: model.rowCount() + " tracks"
+
+                        onTrackDoubleClicked: (index) => {
+                            const trackId = model.getTrackId(index)
+                            CorPlayer.playTrack(trackId)
+                        }
+                    }
+
+                    // Current Playlist view
+                    ColumnLayout {
                         spacing: 16
 
+                        // Playlist header
                         Rectangle {
-                            Layout.preferredWidth: 192
-                            Layout.preferredHeight: 192
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 232
                             color: "#282828"
 
-                            Image {
+                            RowLayout {
                                 anchors.fill: parent
-                                anchors.margins: 16
-                                // source: "qrc:/icons/fa_music"
-                                fillMode: Image.PreserveAspectFit
-                            }
-                        }
+                                anchors.margins: 20
+                                spacing: 20
 
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 8
+                                // Playlist cover
+                                Rectangle {
+                                    Layout.preferredWidth: 192
+                                    Layout.preferredHeight: 192
+                                    color: "#181818"
 
-                            Text {
-                                text: "Current Playlist"
-                                color: "white"
-                                font.pixelSize: 48
-                                font.weight: Font.Bold
-                            }
+                                    // Image {
+                                    //     anchors.fill: parent
+                                    //     anchors.margins: 48
+                                    //     source: "qrc:/icons/fa_list"
+                                    //     sourceSize: Qt.size(96, 96)
+                                    // }
+                                }
 
-                            Text {
-                                text: tracks.count + " tracks"
-                                color: "#b3b3b3"
-                                font.pixelSize: 14
-                            }
+                                // Playlist info
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 8
 
-                            Row {
-                                spacing: 8
+                                    Text {
+                                        text: "PLAYLIST"
+                                        color: "#b3b3b3"
+                                        font.pixelSize: 12
+                                    }
 
-                                // TODO: track playing like other play button
-                                Button {
-                                    // playing: CorPlayer.playerManager.isPlaying
-                                    enabled: CorPlayer.playerManager.canPlay
-                                    onClicked: {
-                                        if (playing) {
-                                            CorPlayer.trackManager.pause()
-                                        } else {
-                                            CorPlayer.trackManager.play()
+                                    Text {
+                                        text: playlists.currentIndex >= 0 ? playlists.currentItem.name : "No playlist selected"
+                                        color: "white"
+                                        font.pixelSize: 48
+                                        font.weight: Font.Bold
+                                    }
+
+                                    Text {
+                                        text: playlists.currentIndex >= 0 ? playlists.currentItem.trackCount + " tracks" : ""
+                                        color: "#b3b3b3"
+                                        font.pixelSize: 14
+                                    }
+
+                                    // Playlist actions
+                                    RowLayout {
+                                        spacing: 16
+
+                                        IconButton {
+                                            icon.name: CorPlayer.playerManager.isPlaying
+                                                ? "qrc:/icons/fa_pause"
+                                                : "qrc:/icons/fa_play"
+                                            enabled: playlists.currentIndex >= 0
+                                            onClicked: {
+                                                if (CorPlayer.playerManager.isPlaying) {
+                                                    playerControls.pause()
+                                                } else {
+                                                    playerControls.play()
+                                                }
+                                            }
+                                        }
+
+                                        IconButton {
+                                            icon.name: "qrc:/icons/fa_plus"
+                                            tooltipText: "Add tracks"
+                                            enabled: playlists.currentIndex >= 0
+                                            onClicked: addTracksDialog.open()
+                                        }
+
+                                        IconButton {
+                                            icon.name: "qrc:/icons/fa_ellipsis"
+                                            tooltipText: "More options"
+                                            enabled: playlists.currentIndex >= 0
+                                            onClicked: playlistOptionsMenu.popup()
                                         }
                                     }
                                 }
+                            }
+                        }
 
-                                Button {
-                                    // icon.name: "qrc:/icons/fa_save"
-                                    onClicked: fileDialog.savePlaylist()
-                                }
+                        // Playlist tracks
+                        TrackBrowser {
+                            id: playlistView
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            model: CorPlayer.playlistModel
+                            showHeader: false
+                            dragEnabled: true
+
+                            onTrackDoubleClicked: (index) => {
+                                CorPlayer.playlistProxyModel.switchTo(index)
+                                playerControls.play()
                             }
                         }
                     }
+                }
 
-                    // Tracks list header
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: 32
-                        color: "transparent"
+                // Playlist options menu
+                Menu {
+                    id: playlistOptionsMenu
 
-                        RowLayout {
-                            anchors.fill: parent
-                            spacing: 8
-
-                            Text {
-                                Layout.preferredWidth: 40
-                                text: "#"
-                                color: "#b3b3b3"
-                                font.pixelSize: 12
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: "Title"
-                                color: "#b3b3b3"
-                                font.pixelSize: 12
-                            }
-
-                            Text {
-                                Layout.preferredWidth: 200
-                                text: "Artist"
-                                color: "#b3b3b3"
-                                font.pixelSize: 12
-                            }
-
-                            Text {
-                                Layout.preferredWidth: 200
-                                text: "Album"
-                                color: "#b3b3b3"
-                                font.pixelSize: 12
-                            }
-
-                            Text {
-                                Layout.preferredWidth: 64
-                                text: "Duration"
-                                color: "#b3b3b3"
-                                font.pixelSize: 12
-                            }
-                        }
+                    MenuItem {
+                        text: "Sort by"
+                        enabled: false  // TODO: Implement sorting
                     }
 
-                    // Tracks list
-                    ListView {
-                        id: tracks
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        model: CorPlayer.playlistModel
-                        // delegate: TrackListItem {
-                        //     width: parent.width
-                        //     height: 56
-                        //     index: model.index + 1
-                        //     title: model.title
-                        //     artist: model.artist
-                        //     album: model.album
-                        //     duration: model.duration
-                        //     isPlaying: model.isPlaying
-                        //     isCurrentTrack: model.current
-                        //     onClicked: {
-                        //         console.log("Play track")
-                        //     }
-                        // }
+                    MenuSeparator {
+                    }
 
-                        ScrollBar.vertical: ScrollBar {}
+                    MenuItem {
+                        text: "Export playlist"
+                        onTriggered: fileDialog.savePlaylist()
                     }
                 }
             }
