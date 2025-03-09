@@ -1,7 +1,7 @@
 #ifndef DBCONNECTION_H
 #define DBCONNECTION_H
 
-#include "dbconnectionpool.h"
+#include "database/dbconnectionpool.h"
 
 class DbConnection {
 public:

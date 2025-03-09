@@ -1,6 +1,6 @@
 #include "activetrackmanager.h"
 
-#include "playlist/playlistmodel.hpp"
+#include "models/playlistmodel.hpp"
 
 #include <QDateTime>
 #include <QTimer>
@@ -111,37 +111,37 @@ void TrackMetadata::setCurrentTrack(const QPersistentModelIndex& currentTrack) {
 }
 
 void TrackMetadata::updateMetadata() {
-    QVariant newTitle = m_currentTrack.data(m_roles.title);
+    const QVariant newTitle = m_currentTrack.data(m_roles.title);
     if (m_metadata.title != newTitle) {
         m_metadata.title = newTitle.toString();
         Q_EMIT titleChanged();
     }
 
-    QVariant newArtist = m_currentTrack.data(m_roles.artist);
+    const QVariant newArtist = m_currentTrack.data(m_roles.artist);
     if (m_metadata.artist != newArtist) {
         m_metadata.artist = newArtist.toString();
         Q_EMIT artistChanged();
     }
 
-    QVariant newAlbum = m_currentTrack.data(m_roles.album);
+    const QVariant newAlbum = m_currentTrack.data(m_roles.album);
     if (m_metadata.album != newAlbum) {
         m_metadata.album = newAlbum.toString();
         Q_EMIT albumChanged();
     }
 
-    QVariant newAlbumArtist = m_currentTrack.data(m_roles.albumArtist);
+    const QVariant newAlbumArtist = m_currentTrack.data(m_roles.albumArtist);
     if (m_metadata.albumArtist != newAlbumArtist) {
         m_metadata.albumArtist = newAlbumArtist.toString();
         Q_EMIT albumArtistChanged();
     }
 
-    QVariant newFileUrl = m_currentTrack.data(m_roles.fileUrl);
+    const QVariant newFileUrl = m_currentTrack.data(m_roles.fileUrl);
     if (m_metadata.fileUrl != newFileUrl) {
         m_metadata.fileUrl = newFileUrl.toUrl();
         Q_EMIT fileUrlChanged();
     }
 
-    QVariant newCoverUrl = m_currentTrack.data(m_roles.coverUrl);
+    const QVariant newCoverUrl = m_currentTrack.data(m_roles.coverUrl);
     if (m_metadata.coverUrl != newCoverUrl) {
         m_metadata.coverUrl = newCoverUrl.toUrl();
         Q_EMIT coverUrlChanged();
@@ -149,7 +149,7 @@ void TrackMetadata::updateMetadata() {
 
     {
         bool conversionOk = false;
-        quint64 newDatabaseId = m_currentTrack.data(m_roles.databaseId).toULongLong(&conversionOk);
+        const quint64 newDatabaseId = m_currentTrack.data(m_roles.databaseId).toULongLong(&conversionOk);
         if (conversionOk && m_metadata.databaseId != newDatabaseId) {
             m_metadata.databaseId = newDatabaseId;
             Q_EMIT databaseIdChanged();
@@ -159,20 +159,20 @@ void TrackMetadata::updateMetadata() {
         }
     }
 
-    QVariant newElementType = m_currentTrack.data(m_roles.elementType);
+    const QVariant newElementType = m_currentTrack.data(m_roles.elementType);
     if (m_metadata.elementType != newElementType) {
         m_metadata.elementType = static_cast<PlayerUtils::PlaylistEntryType>(newElementType.toInt());
         Q_EMIT elementTypeChanged();
     }
 
-    QVariant newIsPlaying = m_currentTrack.data(m_roles.isPlaying);
+    const QVariant newIsPlaying = m_currentTrack.data(m_roles.isPlaying);
     if (m_metadata.isPlaying != newIsPlaying) {
         m_metadata.isPlaying = newIsPlaying.toBool();
         Q_EMIT isPlayingChanged();
     }
 
     bool conversionOk = false;
-    quint64 newAlbumId = m_currentTrack.data(m_roles.albumId).toULongLong(&conversionOk);
+    const quint64 newAlbumId = m_currentTrack.data(m_roles.albumId).toULongLong(&conversionOk);
     if (conversionOk && m_metadata.albumId != newAlbumId) {
         m_metadata.albumId = newAlbumId;
         Q_EMIT albumIdChanged();
@@ -181,7 +181,7 @@ void TrackMetadata::updateMetadata() {
         Q_EMIT albumIdChanged();
     }
 
-    QVariant newIsValid = m_currentTrack.data(m_roles.isValid);
+    const QVariant newIsValid = m_currentTrack.data(m_roles.isValid);
     if (m_metadata.isValid != newIsValid) {
         m_metadata.isValid = newIsValid.toBool();
         Q_EMIT isValidChanged();
@@ -276,14 +276,12 @@ void ActiveTrackManager::setCurrentTrack(const QPersistentModelIndex& currentTra
 
     if (m_previousTrack != m_currentTrack || m_isPlaying) {
         Q_EMIT currentTrackChanged();
+        if (m_currentTrack.isValid()) {
+            Q_EMIT trackSourceChanged(m_currentTrack.data(m_trackMetadata->m_roles.fileUrl).toUrl());
+        }
     }
 
-    switch (m_playbackState) {
-    case QMediaPlayer::StoppedState:
-        Q_EMIT trackSourceChanged(m_currentTrack.data(m_trackMetadata->m_roles.fileUrl).toUrl());
-        break;
-    case QMediaPlayer::PlayingState:
-    case QMediaPlayer::PausedState:
+    if (m_playbackState == QMediaPlayer::PlayingState || m_playbackState == QMediaPlayer::PausedState) {
         enqueue([this] {
             Q_EMIT stopTrack();
         });
@@ -291,7 +289,6 @@ void ActiveTrackManager::setCurrentTrack(const QPersistentModelIndex& currentTra
             m_isPlaying = false;
         }
         m_skippingCurrentTrack = true;
-        break;
     }
 }
 
@@ -313,7 +310,7 @@ void ActiveTrackManager::setPlaylistModel(QAbstractItemModel* playlistModel) {
     if (m_playlistModel == playlistModel) return;
 
     if (m_playlistModel != nullptr) {
-        disconnect(m_playlistModel, &QAbstractItemModel::dataChanged, this, &ActiveTrackManager::tracksDataChanged);
+        disconnect(m_playlistModel, nullptr, this, nullptr);
     }
 
     m_playlistModel = playlistModel;
@@ -497,10 +494,10 @@ void ActiveTrackManager::playPause() {
     }
 }
 
-void ActiveTrackManager::setDuration(const qint64 trackDuration) {
-    if (m_duration == trackDuration) return;
+void ActiveTrackManager::setDuration(const qint64 duration) {
+    if (m_duration == duration) return;
 
-    m_duration = trackDuration;
+    m_duration = duration;
     Q_EMIT durationChanged();
 }
 
@@ -522,14 +519,14 @@ void ActiveTrackManager::setPosition(const qint64 position) {
     });
 }
 
-void ActiveTrackManager::setTrackControlPosition(const int newTrackControlPosition) {
-    Q_EMIT seek(newTrackControlPosition);
+void ActiveTrackManager::setTrackControlPosition(const int trackControlPosition) {
+    Q_EMIT seek(trackControlPosition);
 }
 
-void ActiveTrackManager::setPersistentState(const QVariantMap& newPersistentState) {
-    if (m_persistentState == newPersistentState) return;
+void ActiveTrackManager::setPersistentState(const QVariantMap& persistentState) {
+    if (m_persistentState == persistentState) return;
 
-    m_persistentState = newPersistentState;
+    m_persistentState = persistentState;
     Q_EMIT persistentStateChanged();
 
     if (m_currentTrack.isValid()) {

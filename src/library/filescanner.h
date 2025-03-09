@@ -1,7 +1,7 @@
 #ifndef FILESCANNER_H
 #define FILESCANNER_H
 
-#include "metadata.hpp"
+#include "../metadata.hpp"
 
 #include <QFileInfo>
 

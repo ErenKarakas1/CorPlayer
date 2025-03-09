@@ -1,7 +1,7 @@
 #ifndef DATABASEMANAGER_H
 #define DATABASEMANAGER_H
 
-#include "dbconnectionpool.h"
+#include "database/dbconnectionpool.h"
 
 #include <memory>
 

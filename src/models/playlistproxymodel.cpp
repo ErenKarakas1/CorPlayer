@@ -1,9 +1,10 @@
-#include <playlist/trackplaylistproxymodel.h>
+#include "trackplaylistproxymodel.h"
 
-#include <playlist/playlistmodel.hpp>
-#include <playlist/playlistparser.h>
+#include "../library/playlistparser.h"
+#include "playlist/savedplaylistmodel.hpp"
+#include "playlistmodel.hpp"
 
-#include "playerutils.hpp"
+#include "../playerutils.hpp"
 
 #include <QDir>
 #include <QFile>
@@ -17,6 +18,7 @@
 
 class TrackPlaylistProxyModelPrivate {
 public:
+    SavedPlaylistModel* m_savedPlaylistModel;
     PlaylistModel* m_playlistModel;
     QPersistentModelIndex m_previousTrack;
     QPersistentModelIndex m_currentTrack;
@@ -54,10 +56,7 @@ QModelIndex TrackPlaylistProxyModel::index(const int row, const int column, cons
 }
 
 QModelIndex TrackPlaylistProxyModel::mapFromSource(const QModelIndex& sourceIndex) const {
-    if (!sourceIndex.isValid()) {
-        return {};
-    }
-
+    if (!sourceIndex.isValid()) return {};
     return tpp->m_playlistModel->index(mapRowFromSource(sourceIndex.row()), sourceIndex.column());
 }
 
@@ -84,10 +83,7 @@ QItemSelection TrackPlaylistProxyModel::mapSelectionToSource(const QItemSelectio
 }
 
 QModelIndex TrackPlaylistProxyModel::mapToSource(const QModelIndex& proxyIndex) const {
-    if (!proxyIndex.isValid()) {
-        return {};
-    }
-
+    if (!proxyIndex.isValid()) return {};
     return tpp->m_playlistModel->index(mapRowToSource(proxyIndex.row()), proxyIndex.column());
 }
 
@@ -107,9 +103,7 @@ int TrackPlaylistProxyModel::mapRowFromSource(const int sourceRow) const {
 
 int TrackPlaylistProxyModel::rowCount(const QModelIndex& parent) const {
     if (tpp->m_shuffleMode != NoShuffle) {
-        if (parent.isValid()) {
-            return 0;
-        }
+        if (parent.isValid()) return 0;
         return static_cast<int>(tpp->m_randomMapping.count());
     }
     return tpp->m_playlistModel->rowCount(parent);
@@ -200,72 +194,72 @@ TrackPlaylistProxyModel::Repeat TrackPlaylistProxyModel::repeatMode() const {
 }
 
 void TrackPlaylistProxyModel::setShuffleMode(const Shuffle value) {
-    if (tpp->m_shuffleMode != value) {
-        auto playlistSize = tpp->m_playlistModel->rowCount();
+    if (tpp->m_shuffleMode == value) return;
 
-        if (playlistSize != 0) {
-            Q_EMIT layoutAboutToBeChanged(QList<QPersistentModelIndex>(), QAbstractItemModel::VerticalSortHint);
+    auto playlistSize = tpp->m_playlistModel->rowCount();
 
-            // if (!tpp->m_randomMapping.isEmpty()) {
-            //     Q_ASSERT(tpp->m_shuffleMode != TrackPlaylistProxyModel::Shuffle::NoShuffle);
-            //     QModelIndexList from;
-            //     from.reserve(playListSize);
-            //     QModelIndexList to;
-            //     to.reserve(playListSize);
-            //     for (int i = 0; i < playListSize; ++i) {
-            //         to.append(index(tpp->m_randomMapping.at(i), 0));
-            //         from.append(index(i, 0));
-            //     }
-            //     changePersistentIndexList(from, to);
-            //
-            //     tpp->m_randomMapping.clear();
-            // }
-            if (value != Shuffle::NoShuffle) {
-                QModelIndexList from, to;
-                from.reserve(playlistSize);
-                to.reserve(playlistSize);
+    if (playlistSize != 0) {
+        Q_EMIT layoutAboutToBeChanged(QList<QPersistentModelIndex>(), QAbstractItemModel::VerticalSortHint);
 
-                tpp->m_randomMapping.clear();
-                tpp->m_randomMapping.reserve(playlistSize);
+        if (!tpp->m_randomMapping.isEmpty()) {
+            Q_ASSERT(tpp->m_shuffleMode != TrackPlaylistProxyModel::Shuffle::NoShuffle);
+            QModelIndexList from;
+            from.reserve(playlistSize);
+            QModelIndexList to;
+            to.reserve(playlistSize);
+            for (int i = 0; i < playlistSize; ++i) {
+                to.append(index(tpp->m_randomMapping.at(i), 0));
+                from.append(index(i, 0));
+            }
+            changePersistentIndexList(from, to);
 
-                for (int i = 0; i < playlistSize; ++i) {
-                    tpp->m_randomMapping.append(i);
-                    to.append(index(i, 0));
-                }
+            tpp->m_randomMapping.clear();
+        }
+        if (value != Shuffle::NoShuffle) {
+            QModelIndexList from, to;
+            from.reserve(playlistSize);
+            to.reserve(playlistSize);
 
-                if (value != Shuffle::Track) {
-                    if (playlistSize > 1) {
-                        if (currentTrackRow() != 0) {
-                            std::swap(tpp->m_randomMapping[0], tpp->m_randomMapping[currentTrackRow()]);
-                        }
-                        from.append(index(tpp->m_randomMapping.at(0), 0));
-                    }
-                    // Fisher-Yates algorithm
-                    for (int i = 1; i < playlistSize - 1; ++i) {
-                        const int swapIndex = tpp->m_randomGenerator.bounded(i, playlistSize);
-                        std::swap(tpp->m_randomMapping[i], tpp->m_randomMapping[swapIndex]);
-                        from.append(index(tpp->m_randomMapping.at(i), 0));
-                    }
-                    from.append(index(tpp->m_randomMapping.at(playlistSize - 1), 0));
-                }
-                changePersistentIndexList(from, to);
+            tpp->m_randomMapping.clear();
+            tpp->m_randomMapping.reserve(playlistSize);
+
+            for (int i = 0; i < playlistSize; ++i) {
+                tpp->m_randomMapping.append(i);
+                to.append(index(i, 0));
             }
 
-            tpp->m_currentPlaylistPosition = tpp->m_currentTrack.row();
-            tpp->m_shuffleMode = value;
-
-            Q_EMIT layoutChanged(QList<QPersistentModelIndex>(), QAbstractItemModel::VerticalSortHint);
-
-            determineAndNotifyPreviousAndNextTracks();
-        } else {
-            tpp->m_shuffleMode = value;
+            if (value != Shuffle::Track) {
+                if (playlistSize > 1) {
+                    if (currentTrackRow() != 0) {
+                        std::swap(tpp->m_randomMapping[0], tpp->m_randomMapping[currentTrackRow()]);
+                    }
+                    from.append(index(tpp->m_randomMapping.at(0), 0));
+                }
+                // Fisher-Yates algorithm
+                for (int i = 1; i < playlistSize - 1; ++i) {
+                    const int swapIndex = tpp->m_randomGenerator.bounded(i, playlistSize);
+                    std::swap(tpp->m_randomMapping[i], tpp->m_randomMapping[swapIndex]);
+                    from.append(index(tpp->m_randomMapping.at(i), 0));
+                }
+                from.append(index(tpp->m_randomMapping.at(playlistSize - 1), 0));
+            }
+            changePersistentIndexList(from, to);
         }
 
-        Q_EMIT shuffleModeChanged();
-        Q_EMIT remainingTracksChanged();
-        Q_EMIT remainingTracksDurationChanged();
-        Q_EMIT persistentStateChanged();
+        tpp->m_currentPlaylistPosition = tpp->m_currentTrack.row();
+        tpp->m_shuffleMode = value;
+
+        Q_EMIT layoutChanged(QList<QPersistentModelIndex>(), QAbstractItemModel::VerticalSortHint);
+
+        determineAndNotifyPreviousAndNextTracks();
+    } else {
+        tpp->m_shuffleMode = value;
     }
+
+    Q_EMIT shuffleModeChanged();
+    Q_EMIT remainingTracksChanged();
+    Q_EMIT remainingTracksDurationChanged();
+    Q_EMIT persistentStateChanged();
 }
 
 TrackPlaylistProxyModel::Shuffle TrackPlaylistProxyModel::shuffleMode() const {
@@ -475,9 +469,7 @@ int TrackPlaylistProxyModel::totalTracksDuration() const {
     int time = 0;
 
     for (int i = 0; i < rowCount(); ++i) {
-        time += tpp->m_playlistModel->data(index(i, 0), static_cast<int>(Metadata::Fields::Duration))
-                    .toTime()
-                    .msecsSinceStartOfDay();
+        time += tpp->m_playlistModel->data(index(i, 0), Metadata::Fields::Duration).toTime().msecsSinceStartOfDay();
     }
     return time;
 }
@@ -486,9 +478,7 @@ int TrackPlaylistProxyModel::remainingTracksDuration() const {
     int time = 0;
 
     for (int i = tpp->m_currentTrack.row(); i < rowCount(); ++i) {
-        time += tpp->m_playlistModel->data(index(i, 0), static_cast<int>(Metadata::Fields::Duration))
-                    .toTime()
-                    .msecsSinceStartOfDay();
+        time += tpp->m_playlistModel->data(index(i, 0), Metadata::Fields::Duration).toTime().msecsSinceStartOfDay();
     }
     return time;
 }
@@ -595,6 +585,7 @@ void TrackPlaylistProxyModel::switchTo(const int row) {
     notifyCurrentTrackChanged();
 }
 
+// TODO: can't pass as reference?
 void TrackPlaylistProxyModel::removeSelection(QList<int> selection) const {
     std::ranges::sort(selection);
     std::ranges::reverse(selection);
@@ -702,7 +693,7 @@ void TrackPlaylistProxyModel::determineAndNotifyPreviousAndNextTracks() {
 
 int TrackPlaylistProxyModel::indexForTrackUrl(const QUrl& url) const {
     for (int i = 0; i < rowCount(); ++i) {
-        const QUrl thisTrackUrl = data(index(i, 0), static_cast<int>(Metadata::Fields::ResourceUrl)).toUrl();
+        const QUrl thisTrackUrl = data(index(i, 0), Metadata::Fields::ResourceUrl).toUrl();
 
         if (thisTrackUrl == url) {
             return i;
@@ -745,10 +736,10 @@ void TrackPlaylistProxyModel::determineTracks() {
     if (!tpp->m_currentTrack.isValid() || tpp->m_currentPlaylistPosition != tpp->m_currentTrack.row()) {
         for (int row = 0; row < rowCount(); ++row) {
             auto candidateTrack = index(row, 0);
-            const auto type = candidateTrack.data(static_cast<int>(Metadata::Fields::ElementType))
-                                  .value<PlayerUtils::PlaylistEntryType>();
+            const auto type =
+                candidateTrack.data(Metadata::Fields::ElementType).value<PlayerUtils::PlaylistEntryType>();
 
-            if (candidateTrack.isValid() && candidateTrack.data(static_cast<int>(Metadata::Fields::IsValid)).toBool() &&
+            if (candidateTrack.isValid() && candidateTrack.data(Metadata::Fields::IsValid).toBool() &&
                 (type == PlayerUtils::Track || type == PlayerUtils::FileName)) {
                 tpp->m_currentTrack = candidateTrack;
                 notifyCurrentTrackChanged();
@@ -777,9 +768,8 @@ bool TrackPlaylistProxyModel::savePlaylist(const QUrl& fileName) const {
     QList<QString> listOfFilePaths;
 
     for (int i = 0; i < rowCount(); ++i) {
-        if (data(index(i, 0), static_cast<int>(Metadata::Fields::IsValid)).toBool()) {
-            listOfFilePaths.append(
-                data(index(i, 0), static_cast<int>(Metadata::Fields::ResourceUrl)).toUrl().toLocalFile());
+        if (data(index(i, 0), Metadata::Fields::IsValid).toBool()) {
+            listOfFilePaths.append(data(index(i, 0), Metadata::Fields::ResourceUrl).toUrl().toLocalFile());
         }
     }
 
@@ -787,6 +777,24 @@ bool TrackPlaylistProxyModel::savePlaylist(const QUrl& fileName) const {
     outputFile.write(fileContent.toUtf8());
 
     return true;
+}
+
+void TrackPlaylistProxyModel::loadPlaylistFromDatabase(const quint64 id) {
+    clearPlaylist();
+
+    const auto& trackIds = tpp->m_savedPlaylistModel->getTrackIds(id);
+
+    Metadata::EntryFieldsList newTracks;
+    newTracks.reserve(trackIds.size());
+
+    for (const auto& trackId : trackIds) {
+        auto entry = Metadata::TrackFields();
+        entry.insert(Metadata::Fields::ElementType, PlayerUtils::Track);
+        entry.insert(Metadata::Fields::DatabaseId, trackId);
+        newTracks.emplace_back(Metadata::EntryFields{.trackFields = entry, .title = {}, .url = {}});
+    }
+
+    enqueue(newTracks, PlayerUtils::ReplacePlaylist, PlayerUtils::DoNotTriggerPlay);
 }
 
 void TrackPlaylistProxyModel::loadPlaylist(const QUrl& fileName) {
@@ -934,7 +942,7 @@ void TrackPlaylistProxyModel::loadLocalFile(Metadata::EntryFieldsList& newTracks
 
     processedFiles.insert(canonicalFilePath);
 
-    auto fileUrl = QUrl::fromLocalFile(fileInfo.filePath());
+    const auto fileUrl = QUrl::fromLocalFile(fileInfo.filePath());
     const auto mimeType = tpp->m_mimeDB.mimeTypeForUrl(fileUrl);
     if (fileInfo.isDir()) {
         if (fileInfo.isSymLink()) return;
@@ -954,7 +962,7 @@ void TrackPlaylistProxyModel::loadLocalFile(Metadata::EntryFieldsList& newTracks
         auto entry = Metadata::TrackFields();
         entry.insert(Metadata::Fields::ElementType, PlayerUtils::FileName);
         entry.insert(Metadata::Fields::ResourceUrl, fileUrl);
-        newTracks.emplace_back(Metadata::EntryFields{entry, {}, {}});
+        newTracks.emplace_back(Metadata::EntryFields{.trackFields = entry, .title = {}, .url = {}});
     }
 }
 

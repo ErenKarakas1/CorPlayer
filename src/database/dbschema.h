@@ -1,7 +1,7 @@
 #ifndef DBSCHEMA_H
 #define DBSCHEMA_H
 
-#include "dbconnection.h"
+#include "database/dbconnection.h"
 
 #include <QObject>
 
@@ -9,9 +9,9 @@ class DbSchema : QObject {
     Q_OBJECT
 
 public:
-    enum class DbStatus { Ok, DatabaseError, BrokenSchemaError, ConnectionError };
+    enum class DbStatus : std::uint8_t { Ok, DatabaseError, BrokenSchemaError, ConnectionError };
 
-    enum class SchemaStatus { Latest, SuccessfulUpgrade, FailedUpgrade };
+    enum class SchemaStatus : std::uint8_t { Latest, SuccessfulUpgrade, FailedUpgrade };
 
     Q_PROPERTY(DbStatus status READ status WRITE setStatus NOTIFY statusChanged)
 

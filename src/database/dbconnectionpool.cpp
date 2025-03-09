@@ -1,7 +1,7 @@
-#include "dbconnectionpool.h"
+#include "database/dbconnectionpool.h"
 
-#include "cordatabase.h"
-#include "sqlquery.h"
+#include "database/cordatabase.h"
+#include "database/sqlquery.h"
 
 #include <QDebug>
 #include <QRandomGenerator>

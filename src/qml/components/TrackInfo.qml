@@ -1,7 +1,4 @@
-import "../.."
-
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
 Item {
@@ -13,8 +10,7 @@ Item {
 
     onImageChanged: {
         if (image && image !== "") {
-            trackImage.source = image.toString().startsWith("image://cover/")
-                ? image : "image://cover/" + image;
+            trackImage.source = image.toString().startsWith("image://cover/") ? image : "image://cover/" + image;
         } else {
             trackImage.source = trackImage.fallback;
         }

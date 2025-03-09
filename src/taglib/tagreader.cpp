@@ -1,4 +1,4 @@
-#include "tagreader.h"
+#include "taglib/tagreader.h"
 
 #include <taglib/aifffile.h>
 #include <taglib/apefile.h>
@@ -162,7 +162,7 @@ void TagReader::extractCoverArt(const QString& fileName, TrackTags& result) cons
         } else if (flac_file->hasID3v2Tag()) {
             result.addCoverImage(extractID3v2Cover(flac_file->ID3v2Tag()));
         }
-    } else if (auto* ogg_file = dynamic_cast<TagLib::Ogg::File*>(file)) {
+    } else if (const auto* ogg_file = dynamic_cast<TagLib::Ogg::File*>(file)) {
         if (auto* xiphComment = dynamic_cast<TagLib::Ogg::XiphComment*>(ogg_file->tag())) {
             result.addCoverImage(extractFlacCover(xiphComment));
         }
@@ -170,15 +170,15 @@ void TagReader::extractCoverArt(const QString& fileName, TrackTags& result) cons
         if (mpeg_file->hasID3v2Tag()) {
             result.addCoverImage(extractID3v2Cover(mpeg_file->ID3v2Tag()));
         }
-    } else if (auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
+    } else if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
         if (mp4_file->tag() != nullptr) {
             result.addCoverImage(extractMP4Cover(mp4_file->tag()));
         }
-    } else if (auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file)) {
+    } else if (const auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file)) {
         if (wav_file->hasID3v2Tag()) {
             result.addCoverImage(extractID3v2Cover(wav_file->ID3v2Tag()));
         }
-    } else if (auto* riff_file = dynamic_cast<TagLib::RIFF::AIFF::File*>(file)) {
+    } else if (const auto* riff_file = dynamic_cast<TagLib::RIFF::AIFF::File*>(file)) {
         result.addCoverImage(extractID3v2Cover(riff_file->tag()));
     } else if (auto* trueaudio_file = dynamic_cast<TagLib::TrueAudio::File*>(file)) {
         if (trueaudio_file->hasID3v2Tag()) {
@@ -250,14 +250,9 @@ void TagReader::readID3v2Tags(const TagLib::ID3v2::Tag* id3Tags, const TrackTags
 
     const auto& map = id3Tags->frameListMap();
 
-    if (map.contains(ID3v2_DiscNumber)) {
-        const auto discNumber = map[ID3v2_DiscNumber].front()->toString().toInt();
-        result.add(Metadata::Fields::DiscNumber, discNumber);
-    }
-
-    if (map.contains(ID3v2_Composer)) {
-        const auto composer = map[ID3v2_Composer].front()->toString();
-        result.add(Metadata::Fields::Composer, TStringToQString(composer));
+    if (map.contains(ID3v2_Title)) {
+        const auto title = map[ID3v2_Title].front()->toString();
+        result.add(Metadata::Fields::Title, TStringToQString(title));
     }
 
     if (map.contains(ID3v2_Artist)) {
@@ -265,14 +260,52 @@ void TagReader::readID3v2Tags(const TagLib::ID3v2::Tag* id3Tags, const TrackTags
         result.add(Metadata::Fields::Artist, TStringToQString(artist));
     }
 
-    if (map.contains(ID3v2_Performer)) {
-        const auto performer = map[ID3v2_Performer].front()->toString();
-        result.add(Metadata::Fields::Performer, TStringToQString(performer));
+    if (map.contains(ID3v2_Album)) {
+        const auto album = map[ID3v2_Album].front()->toString();
+        result.add(Metadata::Fields::Album, TStringToQString(album));
     }
 
     if (map.contains(ID3v2_AlbumArtist)) {
         const auto albumArtist = map[ID3v2_AlbumArtist].front()->toString();
         result.add(Metadata::Fields::AlbumArtist, TStringToQString(albumArtist));
+    }
+
+    if (map.contains(ID3v2_Genre)) {
+        const auto genre = map[ID3v2_Genre].front()->toString();
+        result.add(Metadata::Fields::Genre, TStringToQString(genre));
+    }
+
+    if (map.contains(ID3v2_Performer)) {
+        const auto performer = map[ID3v2_Performer].front()->toString();
+        result.add(Metadata::Fields::Performer, TStringToQString(performer));
+    }
+
+    if (map.contains(ID3v2_Composer)) {
+        const auto composer = map[ID3v2_Composer].front()->toString();
+        result.add(Metadata::Fields::Composer, TStringToQString(composer));
+    }
+
+    if (map.contains(ID3v2_Comment)) {
+        const auto comment = map[ID3v2_Comment].front()->toString();
+        result.add(Metadata::Fields::Comment, TStringToQString(comment));
+    }
+
+    if (map.contains(ID3v2_Date)) {
+        // TODO: this segfault once, protect all fields?
+        const auto* candidate = map[ID3v2_Date].front();
+        if (candidate != nullptr) {
+            result.add(Metadata::Fields::Year, candidate->toString().toInt());
+        }
+    }
+
+    if (map.contains(ID3v2_TrackNumber)) {
+        const auto trackNumber = map[ID3v2_TrackNumber].front()->toString().toInt();
+        result.add(Metadata::Fields::TrackNumber, trackNumber);
+    }
+
+    if (map.contains(ID3v2_DiscNumber)) {
+        const auto discNumber = map[ID3v2_DiscNumber].front()->toString().toInt();
+        result.add(Metadata::Fields::DiscNumber, discNumber);
     }
 
     if (map.contains(ID3v2_SynchronizedLyrics)) {
@@ -281,11 +314,6 @@ void TagReader::readID3v2Tags(const TagLib::ID3v2::Tag* id3Tags, const TrackTags
     } else if (map.contains(ID3v2_UnsychronizedLyrics)) {
         const auto lyrics = map[ID3v2_UnsychronizedLyrics].front()->toString();
         result.add(Metadata::Fields::Lyrics, TStringToQString(lyrics));
-    }
-
-    if (map.contains(ID3v2_Comment)) {
-        const auto comment = map[ID3v2_Comment].front()->toString();
-        result.add(Metadata::Fields::Comment, TStringToQString(comment));
     }
 
     if (map.contains(ID3v2_CoverArt)) {

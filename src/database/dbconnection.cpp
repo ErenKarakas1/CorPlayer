@@ -1,6 +1,6 @@
-#include "dbconnection.h"
+#include "database/dbconnection.h"
 
-#include "cordatabase.h"
+#include "database/cordatabase.h"
 
 #include <QDebug>
 #include <QSqlDatabase>

@@ -9,7 +9,7 @@ class AsyncImageResponse : public QQuickImageResponse, public QRunnable {
     Q_OBJECT
 
 public:
-    AsyncImageResponse(QString id, const QSize& requestedSize) : m_id(std::move(id)), m_requestedSize(requestedSize) {
+    AsyncImageResponse(QString id, const QSize requestedSize) : m_id(std::move(id)), m_requestedSize(requestedSize) {
         setAutoDelete(false);
 
         if (m_requestedSize.isEmpty()) {

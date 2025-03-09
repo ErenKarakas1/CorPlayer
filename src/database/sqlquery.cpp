@@ -1,4 +1,4 @@
-#include "sqlquery.h"
+#include "database/sqlquery.h"
 
 SqlQuery::SqlQuery(const QSqlDatabase& db, const QString& statement) : QSqlQuery(db) {
     setForwardOnly(true);
@@ -11,7 +11,7 @@ void SqlQuery::bindValue(const QString& placeholder, const QVariant& value) {
 }
 
 void SqlQuery::bindStringValue(const QString& placeholder, const QString& value) {
-    bindValue(placeholder, value.isNull() ? QStringLiteral("") : value);
+    bindValue(placeholder, value.isNull() ? QLatin1String("") : value);
 }
 
 void SqlQuery::bindBoolValue(const QString& placeholder, const bool value) {

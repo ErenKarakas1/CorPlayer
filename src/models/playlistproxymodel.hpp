@@ -1,8 +1,8 @@
 #ifndef TRACKPLAYLISTPROXYMODEL_H
 #define TRACKPLAYLISTPROXYMODEL_H
 
-#include "metadata.hpp"
-#include "playerutils.hpp"
+#include "../metadata.hpp"
+#include "../playerutils.hpp"
 
 #include <QAbstractProxyModel>
 #include <QFileInfo>
@@ -98,6 +98,8 @@ public Q_SLOTS:
     void clearPlaylist();
     void undoClearPlaylist();
     [[nodiscard]] bool savePlaylist(const QUrl& fileName) const;
+    void importPlaylist(const QUrl& fileName);
+    void loadPlaylistFromDatabase(quint64 id);
     void loadPlaylist(const QUrl& fileName);
 
     void loadPlaylist(const QUrl& fileName, PlayerUtils::PlaylistEnqueueMode enqueueMode,

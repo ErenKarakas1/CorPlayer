@@ -1,8 +1,8 @@
 #ifndef PLAYLISTMODEL_H
 #define PLAYLISTMODEL_H
 
-#include "metadata.hpp"
-#include "playerutils.hpp"
+#include "../metadata.hpp"
+#include "../playerutils.hpp"
 
 #include <QAbstractListModel>
 #include <QMediaPlayer>
@@ -19,12 +19,27 @@ class PlaylistModel : public QAbstractListModel {
     QML_ELEMENT
 
 public:
+    enum Roles {
+        IsValidRole = Metadata::Fields::IsValid,
+        DatabaseIdRole = Metadata::Fields::DatabaseId,
+        TitleRole = Metadata::Fields::Title,
+        ArtistRole = Metadata::Fields::Artist,
+        AlbumRole = Metadata::Fields::Album,
+        ResourceUrlRole = Metadata::Fields::ResourceUrl,
+        TrackNumberRole = Metadata::Fields::TrackNumber,
+        DiscNumberRole = Metadata::Fields::DiscNumber,
+        DurationRole = Metadata::Fields::Duration,
+        DurationStringRole = Metadata::Fields::DurationString,
+        ElementTypeRole = Metadata::Fields::ElementType,
+        IsPlayingRole = Metadata::PlaylistFields::IsPlaying,
+    };
+    Q_ENUM(Roles)
+
     enum PlayState {
         NotPlaying,
         IsPlaying,
         IsPaused,
     };
-
     Q_ENUM(PlayState)
 
     using EntryType = PlayerUtils::PlaylistEntryType;
@@ -78,20 +93,17 @@ class PlaylistEntry {
 public:
     PlaylistEntry() = default;
 
-    PlaylistEntry(qulonglong id, QString title, QString artist, QString album, QUrl trackUrl, int trackNumber,
+    PlaylistEntry(qulonglong id, QString title, QString artist, QString album, QUrl resourceUrl, int trackNumber,
                   int discNumber, PlaylistModel::EntryType entryType = PlayerUtils::Unknown);
 
     explicit PlaylistEntry(const Metadata::TrackFields& track);
-
     explicit PlaylistEntry(QUrl fileName);
-
     explicit PlaylistEntry(quint64 id, const QString& entryTitle, PlaylistModel::EntryType type);
 
     QString m_title;
     QString m_album;
     QString m_artist;
-    QUrl m_trackUrl;
-    QUrl m_coverImageUrl;
+    QUrl m_resourceUrl;
     int m_trackNumber = 0;
     int m_discNumber = 0;
     quint64 m_dbId = 0;

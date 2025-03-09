@@ -1,13 +1,14 @@
 #ifndef TAGREADER_H
 #define TAGREADER_H
 
-#include "tracktags.h"
+#include "taglib/tracktags.h"
 
-#include <QString>
 #include <taglib/fileref.h>
 #include <taglib/id3v2tag.h>
 #include <taglib/mp4tag.h>
 #include <taglib/xiphcomment.h>
+
+#include <QString>
 
 class TagReader {
 public:

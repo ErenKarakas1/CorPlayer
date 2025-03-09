@@ -17,7 +17,7 @@ class MediaPlayerWrapper : public QObject {
     Q_PROPERTY(QMediaPlayer::MediaStatus status READ status NOTIFY statusChanged)
     Q_PROPERTY(QMediaPlayer::PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
     Q_PROPERTY(QMediaPlayer::Error error READ error NOTIFY errorChanged)
-    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool isMuted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
@@ -30,7 +30,7 @@ public:
     [[nodiscard]] QMediaPlayer::MediaStatus status() const;
     [[nodiscard]] QMediaPlayer::PlaybackState playbackState() const;
     [[nodiscard]] QMediaPlayer::Error error() const;
-    [[nodiscard]] qreal volume() const;
+    [[nodiscard]] float volume() const;
     [[nodiscard]] bool isMuted() const;
     [[nodiscard]] qint64 duration() const;
     [[nodiscard]] qint64 position() const;
@@ -55,7 +55,7 @@ public Q_SLOTS:
     void play() const;
     void pause() const;
     void stop() const;
-    void setVolume(qreal newVolume) const;
+    void setVolume(float newVolume) const;
     void setMuted(bool newIsMuted) const;
     void setPosition(qint64 newPosition) const;
     void saveUndoPosition(qint64 position) const;
@@ -69,13 +69,6 @@ private Q_SLOTS:
 
 private:
     void savePosition(qint64 position) const;
-    void trackStateSignalChanges(QMediaPlayer::PlaybackState newState);
-    void trackStatusSignalChanges(QMediaPlayer::MediaStatus newStatus);
-    void trackDurationSignalChanges(qint64 newDuration);
-    void trackPositionSignalChanges(qint64 newPosition);
-    void trackVolumeSignalChanges();
-    void trackMutedSignalChanges(bool isMuted);
-    void trackSeekableSignalChanges(bool isSeekable);
     void queueStatusChanged();
     void notifyStatusChanges();
 

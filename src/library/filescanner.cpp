@@ -1,8 +1,8 @@
 #include "filescanner.h"
 
-#include "playerutils.hpp"
-#include "taglib/tagreader.h"
-#include "taglib/tracktags.h"
+#include "../playerutils.hpp"
+#include "../taglib/tagreader.h"
+#include "../taglib/tracktags.h"
 
 #include <QLatin1StringView>
 #include <QMimeDatabase>
@@ -83,7 +83,7 @@ Metadata::TrackFields FileScanner::scanFile(const QUrl& file, const QFileInfo& f
     }
 
     if (newTrack.get(Metadata::Fields::HasEmbeddedCover).toBool()) {
-        newTrack.insert(Metadata::Fields::CoverImage, QUrl(QLatin1StringView("image://cover/") + localFile));
+        newTrack.insert(Metadata::Fields::CoverImage, QUrl("image://cover/" + localFile));
     }
 
     newTrack.insert(Metadata::Fields::Hash, newTrack.generateHash());

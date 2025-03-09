@@ -1,7 +1,7 @@
-#include "databasemanager.h"
+#include "database/databasemanager.h"
 
-#include "dbconnection.h"
-#include "dbschema.h"
+#include "database/dbconnection.h"
+#include "database/dbschema.h"
 
 #include <QDebug>
 

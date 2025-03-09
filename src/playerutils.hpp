@@ -1,5 +1,5 @@
-#ifndef PLAYERUTILS_H
-#define PLAYERUTILS_H
+#ifndef PLAYERUTILS_HPP
+#define PLAYERUTILS_HPP
 
 #include <QCryptographicHash>
 #include <QMimeType>

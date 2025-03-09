@@ -1,6 +1,6 @@
-#include "basedatabase.h"
+#include "database/basedatabase.h"
 
-#include "sqlquery.h"
+#include "database/sqlquery.h"
 
 void BaseDatabase::maintenance() const {
     {

@@ -1,4 +1,4 @@
-#include "cordatabase.h"
+#include "database/cordatabase.h"
 
 #include <QSqlQuery>
 

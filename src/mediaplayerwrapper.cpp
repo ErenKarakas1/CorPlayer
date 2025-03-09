@@ -22,15 +22,26 @@ MediaPlayerWrapper::MediaPlayerWrapper(QObject* parent)
     mp->m_player.setAudioOutput(&mp->m_audioOutput);
 
     // clang-format off
-    connect(&mp->m_player, &QMediaPlayer::sourceChanged, this, &MediaPlayerWrapper::sourceChanged);
+    connect(&mp->m_player, &QMediaPlayer::sourceChanged, this, [this] {
+        QTimer::singleShot(0, [this] { Q_EMIT sourceChanged(); });
+    });
     connect(&mp->m_player, &QMediaPlayer::playbackStateChanged, this, &MediaPlayerWrapper::queueStatusChanged);
-    connect(&mp->m_player, QOverload<QMediaPlayer::Error, const QString &>::of(&QMediaPlayer::errorOccurred), this, &MediaPlayerWrapper::errorChanged);
+    connect(&mp->m_player, QOverload<QMediaPlayer::Error, const QString &>::of(&QMediaPlayer::errorOccurred), this, [this](const QMediaPlayer::Error error, const QString &errorString) {
+        qDebug() << "Error occurred in QMediaPlayer: " << errorString;
+        Q_EMIT errorChanged(error);
+    });
     connect(&mp->m_audioOutput, &QAudioOutput::volumeChanged, this, &MediaPlayerWrapper::trackVolumeChanged);
     connect(&mp->m_audioOutput, &QAudioOutput::mutedChanged, this, &MediaPlayerWrapper::trackMutedChanged);
     connect(&mp->m_player, &QMediaPlayer::mediaStatusChanged, this, &MediaPlayerWrapper::queueStatusChanged);
-    connect(&mp->m_player, &QMediaPlayer::durationChanged, this, &MediaPlayerWrapper::durationChanged);
-    connect(&mp->m_player, &QMediaPlayer::positionChanged, this, &MediaPlayerWrapper::positionChanged);
-    connect(&mp->m_player, &QMediaPlayer::seekableChanged, this, &MediaPlayerWrapper::seekableChanged);
+    connect(&mp->m_player, &QMediaPlayer::durationChanged, this, [this](qint64 duration) {
+        QTimer::singleShot(0, [this, duration] { Q_EMIT durationChanged(duration); });
+    });
+    connect(&mp->m_player, &QMediaPlayer::positionChanged, this, [this](qint64 position) {
+        QTimer::singleShot(0, [this, position] { Q_EMIT positionChanged(position); });
+    });
+    connect(&mp->m_player, &QMediaPlayer::seekableChanged, this, [this](bool seekable) {
+        QTimer::singleShot(0, [this, seekable] { Q_EMIT seekableChanged(seekable); });
+    });
     // clang-format on
 }
 
@@ -48,13 +59,13 @@ QMediaPlayer::PlaybackState MediaPlayerWrapper::playbackState() const {
     return mp->m_playbackState;
 }
 
-qreal MediaPlayerWrapper::volume() const {
+float MediaPlayerWrapper::volume() const {
     /**
      *  We should convert between linear for audio output and logarithmic for human ear
      *  https://doc.qt.io/qt-6/qtaudio.html
      */
-    const auto linearVolume = mp->m_audioOutput.volume();
-    const auto logarithmicVolume =
+    const float linearVolume = mp->m_audioOutput.volume();
+    const float logarithmicVolume =
         QtAudio::convertVolume(linearVolume, QtAudio::LinearVolumeScale, QtAudio::LogarithmicVolumeScale);
 
     return logarithmicVolume * 100;
@@ -81,16 +92,20 @@ bool MediaPlayerWrapper::isSeekable() const {
 }
 
 void MediaPlayerWrapper::setSource(const QUrl& newSource) const {
-    mp->m_player.setSource(newSource);
+    if (mp->m_player.mediaStatus() == QMediaPlayer::EndOfMedia && mp->m_player.source() == newSource) {
+        mp->m_player.setPosition(0);
+    } else {
+        mp->m_player.setSource(newSource);
+    }
 }
 
 void MediaPlayerWrapper::play() const {
+    mp->m_player.play();
+
     if (mp->m_hasSavedPosition) {
         mp->m_player.setPosition(mp->m_savedPosition);
         mp->m_hasSavedPosition = false;
     }
-
-    mp->m_player.play();
 }
 
 void MediaPlayerWrapper::pause() const {
@@ -101,8 +116,8 @@ void MediaPlayerWrapper::stop() const {
     mp->m_player.stop();
 }
 
-void MediaPlayerWrapper::setVolume(const qreal newVolume) const {
-    const qreal linearVolume = QtAudio::convertVolume(newVolume / static_cast<qreal>(100.0),
+void MediaPlayerWrapper::setVolume(const float newVolume) const {
+    const qreal linearVolume = QtAudio::convertVolume(newVolume / static_cast<qreal>(100),
                                                       QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
 
     mp->m_audioOutput.setVolume(linearVolume);
@@ -113,6 +128,10 @@ void MediaPlayerWrapper::setMuted(const bool newIsMuted) const {
 }
 
 void MediaPlayerWrapper::setPosition(const qint64 newPosition) const {
+    if (mp->m_player.duration() <= 0) {
+        savePosition(newPosition);
+        return;
+    }
     mp->m_player.setPosition(newPosition);
 }
 
@@ -160,76 +179,6 @@ void MediaPlayerWrapper::savePosition(const qint64 position) const {
         mp->m_hasSavedPosition = true;
         mp->m_savedPosition = position;
     }
-}
-
-/**
- * We should use QMetaObject::invokeMethod and Qt::QueuedConnection to emit signals in the main thread
- * Direct access is discouraged
- * e.g.
- * https://stackoverflow.com/questions/45696232/qmediaplayer-not-loading-media-and-not-emitting-mediastatuschanged-signals
- */
-
-void MediaPlayerWrapper::trackStateSignalChanges(QMediaPlayer::PlaybackState newState) {
-    QMetaObject::invokeMethod(
-        this,
-        [this, newState]() {
-            Q_EMIT playbackStateChanged(newState);
-        },
-        Qt::QueuedConnection);
-}
-
-void MediaPlayerWrapper::trackStatusSignalChanges(QMediaPlayer::MediaStatus newStatus) {
-    QMetaObject::invokeMethod(
-        this,
-        [this, newStatus]() {
-            Q_EMIT statusChanged(newStatus);
-        },
-        Qt::QueuedConnection);
-}
-
-void MediaPlayerWrapper::trackDurationSignalChanges(qint64 newDuration) {
-    QMetaObject::invokeMethod(
-        this,
-        [this, newDuration]() {
-            Q_EMIT durationChanged(newDuration);
-        },
-        Qt::QueuedConnection);
-}
-
-void MediaPlayerWrapper::trackPositionSignalChanges(qint64 newPosition) {
-    QMetaObject::invokeMethod(
-        this,
-        [this, newPosition]() {
-            Q_EMIT positionChanged(newPosition);
-        },
-        Qt::QueuedConnection);
-}
-
-void MediaPlayerWrapper::trackSeekableSignalChanges(bool isSeekable) {
-    QMetaObject::invokeMethod(
-        this,
-        [this, isSeekable]() {
-            Q_EMIT seekableChanged(isSeekable);
-        },
-        Qt::QueuedConnection);
-}
-
-void MediaPlayerWrapper::trackVolumeSignalChanges() {
-    QMetaObject::invokeMethod(
-        this,
-        [this]() {
-            Q_EMIT volumeChanged();
-        },
-        Qt::QueuedConnection);
-}
-
-void MediaPlayerWrapper::trackMutedSignalChanges(bool isMuted) {
-    QMetaObject::invokeMethod(
-        this,
-        [this, isMuted]() {
-            Q_EMIT mutedChanged(isMuted);
-        },
-        Qt::QueuedConnection);
 }
 
 void MediaPlayerWrapper::notifyStatusChanges() {
